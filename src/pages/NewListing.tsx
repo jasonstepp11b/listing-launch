@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { generateContent } from '../lib/generateContent'
 
 const PROPERTY_TYPES = [
   'Single Family',
@@ -76,6 +77,8 @@ function isFormValid(form: FormState): boolean {
 
 export default function NewListing() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   function set(field: keyof FormState, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -88,6 +91,19 @@ export default function NewListing() {
         ? prev.features.filter(f => f !== feature)
         : [...prev.features, feature],
     }))
+  }
+
+  async function handleGenerate() {
+    setLoading(true)
+    setError(null)
+    try {
+      const outputs = await generateContent(form)
+      console.log('Generated outputs:', outputs)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const valid = isFormValid(form)
@@ -255,14 +271,16 @@ export default function NewListing() {
           </section>
 
           {/* Footer */}
+          {error && <p style={s.errorMsg}>{error}</p>}
           <div style={s.footer}>
             <p style={s.requiredNote}><span style={s.required}>*</span> Required fields</p>
             <button
-              type="submit"
-              style={valid ? s.generateBtn : { ...s.generateBtn, ...s.generateBtnDisabled }}
-              disabled={!valid}
+              type="button"
+              style={valid && !loading ? s.generateBtn : { ...s.generateBtn, ...s.generateBtnDisabled }}
+              disabled={!valid || loading}
+              onClick={handleGenerate}
             >
-              ✦ Generate Marketing Content
+              {loading ? 'Generating…' : '✦ Generate Marketing Content'}
             </button>
           </div>
 
@@ -441,6 +459,17 @@ const s: Record<string, React.CSSProperties> = {
   },
   tagCheck: {
     color: '#a855f7',
+  },
+
+  errorMsg: {
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.4)',
+    borderRadius: '8px',
+    color: '#fca5a5',
+    fontSize: '14px',
+    padding: '12px 16px',
+    marginBottom: '16px',
+    lineHeight: '1.5',
   },
 
   // Footer / CTA
