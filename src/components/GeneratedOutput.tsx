@@ -20,8 +20,16 @@ export default function GeneratedOutput({ outputs }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>('mls')
   const [copied, setCopied] = useState<Record<string, boolean>>({})
 
+  function sanitize(text: string): string {
+    return text
+      .replace(/\u202F/g, ' ')  // narrow no-break space
+      .replace(/\u00A0/g, ' ')  // non-breaking space
+      .replace(/\u2009/g, ' ')  // thin space
+      .replace(/\u2008/g, ' ')  // punctuation space
+  }
+
   function copy(key: string, text: string) {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard.writeText(sanitize(text))
     setCopied(prev => ({ ...prev, [key]: true }))
     setTimeout(() => setCopied(prev => ({ ...prev, [key]: false })), 2000)
   }
