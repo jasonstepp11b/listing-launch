@@ -59,7 +59,7 @@ PROPERTY DETAILS:
 Generate all 6 pieces of marketing content and return them as a single valid JSON object with exactly these keys:
 
 {
-  "mls_description": "Optimized MLS property description (150–300 words). Professional tone, highlights key features and lifestyle benefits.",
+  "mls_description": "Optimized MLS property description (150–300 words). Professional tone, highlights key features and lifestyle benefits. Write in 2–3 distinct paragraphs separated by blank lines (\\n\\n). Do NOT write it as one continuous block of text. Use plain ASCII hyphens and standard numerals — no typographic dashes, no special Unicode spacing characters.",
   "social_facebook": "Facebook post (100–200 words). Conversational, engaging, includes a call to action and relevant emojis.",
   "social_instagram": "Instagram caption (50–150 words). Punchy, aspirational, ends with 10–15 relevant hashtags.",
   "social_x": "X (Twitter) post (max 280 characters). Sharp and attention-grabbing with a link placeholder [LINK].",

@@ -165,7 +165,11 @@ function Section({ title, hint, content, copied, onCopy }: SectionProps) {
           {copied ? '✓ Copied!' : 'Copy'}
         </button>
       </div>
-      <pre style={ss.content}>{content}</pre>
+      <div style={ss.content}>
+        {content.split('\n').flatMap((line, i, arr) =>
+          i < arr.length - 1 ? [line, <br key={i} />] : [line]
+        )}
+      </div>
     </div>
   )
 }
@@ -238,6 +242,7 @@ const ss: Record<string, React.CSSProperties> = {
     marginBottom: '28px',
     paddingBottom: '28px',
     borderBottom: '1px solid #2e2e3a',
+    textAlign: 'left',
   },
   sectionHeader: {
     display: 'flex',
@@ -285,8 +290,8 @@ const ss: Record<string, React.CSSProperties> = {
     color: '#d1d5db',
     fontSize: '14px',
     lineHeight: '1.7',
-    whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
+    textAlign: 'left',
     margin: 0,
     fontFamily: 'inherit',
     overflowX: 'auto',
