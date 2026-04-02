@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -16,6 +16,9 @@ export default function Dashboard() {
       <div style={styles.card}>
         <h1 style={styles.heading}>Dashboard</h1>
         <p style={styles.email}>{user?.email}</p>
+        <Link to="/new-listing" style={styles.newListingButton}>
+          ✦ New Listing
+        </Link>
         <button style={styles.signOutButton} onClick={handleSignOut}>
           Sign Out
         </button>
@@ -54,6 +57,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '15px',
     color: '#9ca3af',
     margin: '0 0 32px',
+  },
+  newListingButton: {
+    display: 'inline-block',
+    padding: '12px 28px',
+    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    color: '#fff',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    marginBottom: '12px',
+    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
   },
   signOutButton: {
     padding: '11px 28px',
