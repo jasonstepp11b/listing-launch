@@ -15,36 +15,27 @@ interface Listing {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, credits } = useAuth()
   const navigate = useNavigate()
   const [listings, setListings] = useState<Listing[]>([])
-  const [credits, setCredits] = useState<number | null>(null)
   const [loadingListings, setLoadingListings] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
 
-    async function fetchData() {
-      const [{ data: listingsData }, { data: profile }] = await Promise.all([
-        supabase
-          .from('listings')
-          .select('id, address, price, property_type, created_at, generated_outputs(*)')
-          .eq('user_id', user!.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('profiles')
-          .select('credits_remaining')
-          .eq('id', user!.id)
-          .single(),
-      ])
+    async function fetchListings() {
+      const { data } = await supabase
+        .from('listings')
+        .select('id, address, price, property_type, created_at, generated_outputs(*)')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
 
-      setListings((listingsData as Listing[]) ?? [])
-      setCredits(profile?.credits_remaining ?? null)
+      setListings((data as Listing[]) ?? [])
       setLoadingListings(false)
     }
 
-    fetchData()
+    fetchListings()
   }, [user])
 
   async function handleSignOut() {

@@ -5,6 +5,7 @@ import type { GeneratedOutputs } from '../lib/generateContent'
 import { saveListing } from '../lib/saveListing'
 import { useAuth } from '../context/AuthContext'
 import GeneratedOutput from '../components/GeneratedOutput'
+import PaywallBanner from '../components/PaywallBanner'
 
 const PROPERTY_TYPES = [
   'Single Family',
@@ -80,7 +81,7 @@ function isFormValid(form: FormState): boolean {
 }
 
 export default function NewListing() {
-  const { user } = useAuth()
+  const { user, credits, refreshCredits } = useAuth()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -102,6 +103,7 @@ export default function NewListing() {
 
   async function handleGenerate() {
     if (!user) return
+    if (credits !== null && credits <= 0) return
     setLoading(true)
     setError(null)
     setOutputs(null)
@@ -109,6 +111,7 @@ export default function NewListing() {
       const result = await generateContent(form)
       setOutputs(result)
       await saveListing(user.id, form, result)
+      await refreshCredits()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
@@ -131,9 +134,16 @@ export default function NewListing() {
         {/* Header */}
         <div style={s.header}>
           <Link to="/dashboard" style={s.backLink}>← Dashboard</Link>
-          <div>
-            <h1 style={s.heading}>New Listing</h1>
-            <p style={s.subheading}>Fill in the property details and we'll generate all your marketing content.</p>
+          <div style={s.headerRow}>
+            <div>
+              <h1 style={s.heading}>New Listing</h1>
+              <p style={s.subheading}>Fill in the property details and we'll generate all your marketing content.</p>
+            </div>
+            {credits !== null && (
+              <div style={credits > 0 ? s.creditBadge : { ...s.creditBadge, ...s.creditBadgeEmpty }}>
+                {credits} credit{credits !== 1 ? 's' : ''} remaining
+              </div>
+            )}
           </div>
         </div>
 
@@ -290,14 +300,20 @@ export default function NewListing() {
           {error && <p style={s.errorMsg}>{error}</p>}
           <div style={s.footer}>
             <p style={s.requiredNote}><span style={s.required}>*</span> Required fields</p>
-            <button
-              type="button"
-              style={valid && !loading ? s.generateBtn : { ...s.generateBtn, ...s.generateBtnDisabled }}
-              disabled={!valid || loading}
-              onClick={handleGenerate}
-            >
-              {loading ? 'Generating…' : '✦ Generate Marketing Content'}
-            </button>
+            {credits === 0 ? (
+              <button type="button" style={{ ...s.generateBtn, ...s.generateBtnDisabled }} disabled>
+                No Credits Remaining
+              </button>
+            ) : (
+              <button
+                type="button"
+                style={valid && !loading ? s.generateBtn : { ...s.generateBtn, ...s.generateBtnDisabled }}
+                disabled={!valid || loading}
+                onClick={handleGenerate}
+              >
+                {loading ? 'Generating…' : '✦ Generate Marketing Content'}
+              </button>
+            )}
           </div>
 
         </form>
@@ -311,6 +327,9 @@ export default function NewListing() {
             <GeneratedOutput outputs={outputs} />
           </div>
         )}
+
+        {/* Paywall */}
+        {credits === 0 && !loading && <PaywallBanner />}
 
       </div>
     </div>
@@ -367,6 +386,29 @@ const s: Record<string, React.CSSProperties> = {
   },
   header: {
     marginBottom: '40px',
+  },
+  headerRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '16px',
+    flexWrap: 'wrap',
+  },
+  creditBadge: {
+    padding: '6px 14px',
+    background: 'rgba(168, 85, 247, 0.15)',
+    border: '1px solid rgba(168, 85, 247, 0.4)',
+    borderRadius: '20px',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#c084fc',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  },
+  creditBadgeEmpty: {
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    color: '#fca5a5',
   },
   backLink: {
     display: 'inline-block',
