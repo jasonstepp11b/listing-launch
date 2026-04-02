@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { generateContent } from '../lib/generateContent'
 import type { GeneratedOutputs } from '../lib/generateContent'
+import { saveListing } from '../lib/saveListing'
+import { useAuth } from '../context/AuthContext'
 import GeneratedOutput from '../components/GeneratedOutput'
 
 const PROPERTY_TYPES = [
@@ -78,6 +80,7 @@ function isFormValid(form: FormState): boolean {
 }
 
 export default function NewListing() {
+  const { user } = useAuth()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -98,13 +101,14 @@ export default function NewListing() {
   }
 
   async function handleGenerate() {
+    if (!user) return
     setLoading(true)
     setError(null)
     setOutputs(null)
     try {
       const result = await generateContent(form)
-      console.log('Generated outputs:', result)
       setOutputs(result)
+      await saveListing(user.id, form, result)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
