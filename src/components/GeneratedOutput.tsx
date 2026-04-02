@@ -3,6 +3,7 @@ import type { GeneratedOutputs } from '../lib/generateContent'
 
 interface Props {
   outputs: GeneratedOutputs
+  noTopMargin?: boolean
 }
 
 type TabKey = 'mls' | 'social' | 'email' | 'flyer' | 'video' | 'seo'
@@ -16,7 +17,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'seo',    label: 'SEO Landing Page' },
 ]
 
-export default function GeneratedOutput({ outputs }: Props) {
+export default function GeneratedOutput({ outputs, noTopMargin }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>('mls')
   const [copied, setCopied] = useState<Record<string, boolean>>({})
 
@@ -35,8 +36,8 @@ export default function GeneratedOutput({ outputs }: Props) {
   }
 
   return (
-    <div style={s.wrapper}>
-      <div style={s.header}>
+    <div style={noTopMargin ? { ...s.wrapper, marginTop: 0 } : s.wrapper}>
+      <div className="output-header">
         <span style={s.sparkle}>✦</span>
         <div>
           <h2 style={s.heading}>Your Marketing Content is Ready</h2>
@@ -45,7 +46,7 @@ export default function GeneratedOutput({ outputs }: Props) {
       </div>
 
       {/* Tab bar */}
-      <div style={s.tabBar}>
+      <div className="output-tab-bar">
         {TABS.map(tab => (
           <button
             key={tab.key}
@@ -58,7 +59,7 @@ export default function GeneratedOutput({ outputs }: Props) {
       </div>
 
       {/* Tab content */}
-      <div style={s.body}>
+      <div className="output-body">
 
         {activeTab === 'mls' && (
           <Section
@@ -190,14 +191,7 @@ const s: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     marginTop: '40px',
   },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '28px 32px 24px',
-    borderBottom: '1px solid #2e2e3a',
-    background: 'linear-gradient(135deg, rgba(147,51,234,0.12) 0%, rgba(124,58,237,0.06) 100%)',
-  },
+  header: {},  // layout handled by .output-header CSS class
   sparkle: {
     fontSize: '28px',
     color: '#a855f7',
@@ -215,14 +209,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#9ca3af',
     margin: 0,
   },
-  tabBar: {
-    display: 'flex',
-    overflowX: 'auto',
-    borderBottom: '1px solid #2e2e3a',
-    background: '#16161e',
-    padding: '0 32px',
-    gap: '0',
-  },
+  tabBar: {},  // layout handled by .output-tab-bar CSS class
   tab: {
     padding: '14px 18px',
     background: 'none',
@@ -240,9 +227,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#a855f7',
     borderBottomColor: '#a855f7',
   },
-  body: {
-    padding: '28px 32px',
-  },
+  body: {},  // layout handled by .output-body CSS class
 }
 
 const ss: Record<string, React.CSSProperties> = {

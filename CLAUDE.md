@@ -47,7 +47,7 @@ Use a **hybrid approach**:
 - Property type (Single Family, Condo, Townhouse, Multi-Family, Land, Commercial)
 - Key features (multi-select or tags: e.g. pool, garage, renovated kitchen, waterfront)
 - Neighborhood highlights
-- Target buyer (optional: first-time buyer, investor, luxury, family, etc.)
+- Target buyer (optional: First-Time Buyer, Investor, Luxury, Family, Downsizer, Out-of-State Buyer, Tax Incentive Buyer, Retiree Buyer, Any)
 
 ### Freeform Field
 - "Anything else you'd like to highlight?" (open textarea)
@@ -113,6 +113,7 @@ Extends Supabase auth.users.
 
 - New users receive **3 free credits** on signup
 - Each generation (1 listing → all 6 outputs) costs **1 credit**
+- Credits are only deducted after both the API call AND the Supabase save succeed — failed generations are never charged
 - After 0 credits, the generate button is disabled and a paywall placeholder is shown
 - No real payment processing in MVP — just a "Coming Soon / Join Waitlist" CTA
 
@@ -146,6 +147,13 @@ Extends Supabase auth.users.
 
 ---
 
+## Security Notes
+
+- The Anthropic API key is currently exposed on the client side via `VITE_ANTHROPIC_API_KEY`. This is acceptable for MVP/local development only.
+- Before any public launch, the Anthropic API call must be moved to a server-side function (e.g. Supabase Edge Function) to protect the API key.
+
+---
+
 ## Out of Scope for MVP
 
 - Payment processing / Stripe integration
@@ -155,20 +163,42 @@ Extends Supabase auth.users.
 - Custom branding per agent
 - Email delivery (SMTP / SendGrid)
 - Mobile app
+- Agent writing style personalization (see Future Roadmap below)
+
+---
+
+## Future Roadmap (Post-MVP)
+
+### ✍️ Agent Writing Style Personalization
+**Priority: High — build after core MVP is validated**
+
+Allow agents to upload a PDF or document containing examples of their past posts, videos, emails, or any written content. The AI will use this as a style reference to generate marketing copy that sounds like the agent — not generic AI.
+
+Suggested implementation:
+- Agent creates a Google Doc with examples of their writing (posts, emails, video scripts they've published)
+- Exports it as a PDF and uploads it to ListingIgnite
+- PDF is stored in Supabase Storage, linked to their profile
+- On generation, the PDF text is extracted and injected into the Anthropic prompt as a style guide
+- The prompt instructs Claude to match the agent's tone, vocabulary, and voice
+
+Why this matters: Agents have distinct personal brands. Their audience follows *them*, not just the property. Content that sounds like the agent is significantly more valuable than generic AI copy — and could justify a premium credit tier.
+
+**Trigger to build:** When users say "I love it, but it doesn't sound like me."
 
 ---
 
 ## Project Status
 
-- [ ] Project scaffolded (Vite + React + TS)
-- [ ] Supabase project created & env vars configured
-- [ ] Supabase Google OAuth enabled
-- [ ] Database schema applied
-- [ ] Auth flow implemented
-- [ ] Listing input form built
-- [ ] Anthropic API integration complete
-- [ ] Output UI (tabs + copy buttons) built
-- [ ] Listings saved to Supabase
-- [ ] Credit tracking implemented
-- [ ] Paywall placeholder built
+- [x] Project scaffolded (Vite + React + TS)
+- [x] Supabase project created & env vars configured
+- [x] Supabase Google OAuth enabled
+- [x] Database schema applied
+- [x] Auth flow implemented
+- [x] Listing input form built
+- [x] Anthropic API integration complete
+- [x] Output UI (tabs + copy buttons) built
+- [x] Listings saved to Supabase
+- [x] Credit tracking implemented
+- [x] Paywall placeholder built
+- [ ] Step 10 polish & UX pass complete
 - [ ] MVP deployed

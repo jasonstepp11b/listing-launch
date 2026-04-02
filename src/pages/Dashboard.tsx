@@ -19,20 +19,31 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [listings, setListings] = useState<Listing[]>([])
   const [loadingListings, setLoadingListings] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  useEffect(() => {
+    document.title = 'ListingIgnite — Dashboard'
+  }, [])
 
   useEffect(() => {
     if (!user) return
 
     async function fetchListings() {
-      const { data } = await supabase
-        .from('listings')
-        .select('id, address, price, property_type, created_at, generated_outputs(*)')
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
+      try {
+        const { data, error } = await supabase
+          .from('listings')
+          .select('id, address, price, property_type, created_at, generated_outputs(*)')
+          .eq('user_id', user!.id)
+          .order('created_at', { ascending: false })
 
-      setListings((data as Listing[]) ?? [])
-      setLoadingListings(false)
+        if (error) throw error
+        setListings((data as Listing[]) ?? [])
+      } catch {
+        setFetchError('Failed to load your listings. Please refresh the page.')
+      } finally {
+        setLoadingListings(false)
+      }
     }
 
     fetchListings()
@@ -91,14 +102,21 @@ export default function Dashboard() {
         {credits === 0 && (
           <div style={s.paywall}>
             <strong style={{ color: '#f3f4f6' }}>You've used all your free credits.</strong>
-            {' '}Paid plans are coming soon — join the waitlist to get notified.
-            {/* TODO: Link to waitlist / payment when ready */}
+            {' '}Paid plans are coming soon — you'll be notified when they're available.
           </div>
         )}
 
         {/* Listings */}
         {loadingListings ? (
-          <div style={s.emptyState}>Loading your listings…</div>
+          <div style={s.stateBox}>
+            <span className="generating-pulse" style={s.stateSparkle}>✦</span>
+            <p style={s.stateText}>Loading your listings…</p>
+          </div>
+        ) : fetchError ? (
+          <div style={s.errorBox}>
+            <p style={s.errorText}>{fetchError}</p>
+            <button style={s.retryBtn} onClick={() => window.location.reload()}>Retry</button>
+          </div>
         ) : listings.length === 0 ? (
           <div style={s.emptyCard}>
             <div style={s.emptyIcon}>🏡</div>
@@ -134,7 +152,7 @@ export default function Dashboard() {
                   {isExpanded && (
                     <div style={s.outputWrapper}>
                       {outputs
-                        ? <GeneratedOutput outputs={outputs} />
+                        ? <GeneratedOutput outputs={outputs} noTopMargin />
                         : <p style={s.noOutputs}>No generated content found for this listing.</p>
                       }
                     </div>
@@ -276,15 +294,51 @@ const s: Record<string, React.CSSProperties> = {
     color: '#fca5a5',
     marginBottom: '28px',
     lineHeight: '1.5',
+    textAlign: 'left',
+  },
+
+  // Loading / error states
+  stateBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '80px 0',
+    gap: '16px',
+  },
+  stateSparkle: {
+    fontSize: '28px',
+    color: '#a855f7',
+  },
+  stateText: {
+    fontSize: '15px',
+    color: '#6b7280',
+    margin: 0,
+  },
+  errorBox: {
+    background: 'rgba(239, 68, 68, 0.08)',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
+    borderRadius: '12px',
+    padding: '32px',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: '14px',
+    color: '#fca5a5',
+    margin: '0 0 16px',
+  },
+  retryBtn: {
+    padding: '9px 20px',
+    background: 'transparent',
+    border: '1px solid rgba(239, 68, 68, 0.4)',
+    borderRadius: '7px',
+    color: '#fca5a5',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
   },
 
   // Empty state
-  emptyState: {
-    textAlign: 'center',
-    color: '#6b7280',
-    padding: '60px 0',
-    fontSize: '15px',
-  },
   emptyCard: {
     background: '#1c1c24',
     border: '1px solid #2e2e3a',
@@ -374,6 +428,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   outputWrapper: {
     padding: '0 24px 24px',
+    borderTop: '1px solid #2e2e3a',
   },
   noOutputs: {
     textAlign: 'left',

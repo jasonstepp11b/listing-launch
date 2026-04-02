@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -6,6 +6,12 @@ import { useAuth } from '../context/AuthContext'
 export default function Login() {
   const { session, loading } = useAuth()
   const navigate = useNavigate()
+  const [signingIn, setSigningIn] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    document.title = 'ListingIgnite — Sign In'
+  }, [])
 
   useEffect(() => {
     if (!loading && session) {
@@ -14,12 +20,17 @@ export default function Login() {
   }, [session, loading, navigate])
 
   async function handleGoogleSignIn() {
-    await supabase.auth.signInWithOAuth({
+    setSigningIn(true)
+    setError(null)
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-      },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     })
+    if (error) {
+      setError('Sign-in failed. Please try again.')
+      setSigningIn(false)
+    }
+    // On success the browser redirects — no need to reset signingIn
   }
 
   return (
@@ -32,9 +43,21 @@ export default function Login() {
           MLS copy, social posts, email blasts, and more — in seconds.
         </p>
 
-        <button style={styles.googleButton} onClick={handleGoogleSignIn}>
-          <GoogleIcon />
-          Sign in with Google
+        {error && <p style={styles.error}>{error}</p>}
+
+        <button
+          style={signingIn ? { ...styles.googleButton, ...styles.googleButtonLoading } : styles.googleButton}
+          onClick={handleGoogleSignIn}
+          disabled={signingIn}
+        >
+          {signingIn ? (
+            <span style={styles.signingInText}>Redirecting to Google…</span>
+          ) : (
+            <>
+              <GoogleIcon />
+              Sign in with Google
+            </>
+          )}
         </button>
 
         <p style={styles.fine}>
@@ -94,6 +117,16 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: '1.6',
     margin: '0 0 36px',
   },
+  error: {
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    borderRadius: '8px',
+    color: '#fca5a5',
+    fontSize: '13px',
+    padding: '10px 14px',
+    marginBottom: '16px',
+    margin: '0 0 16px',
+  },
   googleButton: {
     display: 'flex',
     alignItems: 'center',
@@ -108,8 +141,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '15px',
     fontWeight: '600',
     cursor: 'pointer',
-    transition: 'background 0.15s',
     boxSizing: 'border-box',
+    fontFamily: 'inherit',
+  },
+  googleButtonLoading: {
+    background: '#e5e7eb',
+    cursor: 'default',
+  },
+  signingInText: {
+    color: '#6b7280',
   },
   fine: {
     marginTop: '20px',

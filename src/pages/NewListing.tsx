@@ -101,6 +101,10 @@ export default function NewListing() {
     }))
   }
 
+  useEffect(() => {
+    document.title = 'ListingIgnite — New Listing'
+  }, [])
+
   async function handleGenerate() {
     if (!user) return
     if (credits !== null && credits <= 0) return
@@ -110,10 +114,22 @@ export default function NewListing() {
     try {
       const result = await generateContent(form)
       setOutputs(result)
-      await saveListing(user.id, form, result)
-      await refreshCredits()
+      try {
+        await saveListing(user.id, form, result)
+        await refreshCredits()
+      } catch {
+        // Save failed but generation succeeded — show a non-blocking warning
+        setError('Your content was generated but could not be saved. Copy what you need before leaving this page.')
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      const msg = err instanceof Error ? err.message : ''
+      if (msg.includes('parse')) {
+        setError('The AI returned an unexpected response. Please try generating again.')
+      } else if (msg.includes('API')) {
+        setError('Could not reach the AI service. Check your connection and try again.')
+      } else {
+        setError('Something went wrong during generation. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -150,7 +166,7 @@ export default function NewListing() {
         <form onSubmit={e => e.preventDefault()}>
 
           {/* Section: Property Details */}
-          <section style={s.section}>
+          <section style={s.section} className="form-section-pad">
             <h2 style={s.sectionTitle}>Property Details</h2>
 
             <div style={s.field}>
@@ -179,7 +195,7 @@ export default function NewListing() {
               </div>
             </div>
 
-            <div style={s.row3}>
+            <div className="form-grid-3">
               <div style={s.field}>
                 <label style={s.label}>Bedrooms <span style={s.required}>*</span></label>
                 <input
@@ -216,7 +232,7 @@ export default function NewListing() {
               </div>
             </div>
 
-            <div style={s.row2}>
+            <div className="form-grid-2">
               <div style={s.field}>
                 <label style={s.label}>Property Type <span style={s.required}>*</span></label>
                 <select
@@ -247,7 +263,7 @@ export default function NewListing() {
           </section>
 
           {/* Section: Key Features */}
-          <section style={s.section}>
+          <section style={s.section} className="form-section-pad">
             <h2 style={s.sectionTitle}>Key Features</h2>
             <p style={s.sectionHint}>Select all that apply — these shape the tone and focus of your content.</p>
             <div style={s.tagGrid}>
@@ -269,7 +285,7 @@ export default function NewListing() {
           </section>
 
           {/* Section: Context & Notes */}
-          <section style={s.section}>
+          <section style={s.section} className="form-section-pad">
             <h2 style={s.sectionTitle}>Context & Notes</h2>
 
             <div style={s.field}>
@@ -430,12 +446,11 @@ const s: Record<string, React.CSSProperties> = {
     margin: 0,
   },
 
-  // Sections
+  // Sections — padding handled by .form-section-pad CSS class
   section: {
     background: '#1c1c24',
     border: '1px solid #2e2e3a',
     borderRadius: '12px',
-    padding: '28px 32px',
     marginBottom: '20px',
   },
   sectionTitle: {
@@ -526,18 +541,6 @@ const s: Record<string, React.CSSProperties> = {
     color: '#6b7280',
     fontSize: '15px',
     pointerEvents: 'none',
-  },
-
-  // Grids
-  row2: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-  },
-  row3: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr',
-    gap: '16px',
   },
 
   // Feature tags
