@@ -17,6 +17,9 @@ const TARGET_BUYERS = [
   'Investor',
   'Luxury',
   'Downsizer',
+  'Out-of-State Buyer',
+  'Tax Incentive Buyer',
+  'Retiree Buyer',
 ] as const
 
 const FEATURE_OPTIONS = [
