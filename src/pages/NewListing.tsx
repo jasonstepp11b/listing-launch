@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { generateContent } from '../lib/generateContent'
+import type { GeneratedOutputs } from '../lib/generateContent'
+import GeneratedOutput from '../components/GeneratedOutput'
 
 const PROPERTY_TYPES = [
   'Single Family',
@@ -79,6 +81,8 @@ export default function NewListing() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [outputs, setOutputs] = useState<GeneratedOutputs | null>(null)
+  const outputRef = useRef<HTMLDivElement>(null)
 
   function set(field: keyof FormState, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -96,15 +100,23 @@ export default function NewListing() {
   async function handleGenerate() {
     setLoading(true)
     setError(null)
+    setOutputs(null)
     try {
-      const outputs = await generateContent(form)
-      console.log('Generated outputs:', outputs)
+      const result = await generateContent(form)
+      console.log('Generated outputs:', result)
+      setOutputs(result)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (outputs && outputRef.current) {
+      outputRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [outputs])
 
   const valid = isFormValid(form)
 
@@ -285,7 +297,54 @@ export default function NewListing() {
           </div>
 
         </form>
+
+        {/* Loading state */}
+        {loading && <GeneratingState />}
+
+        {/* Output */}
+        {outputs && (
+          <div ref={outputRef}>
+            <GeneratedOutput outputs={outputs} />
+          </div>
+        )}
+
       </div>
+    </div>
+  )
+}
+
+const GENERATING_MESSAGES = [
+  'Writing your MLS description…',
+  'Crafting Facebook and Instagram posts…',
+  'Composing your email blast…',
+  'Designing flyer copy…',
+  'Scripting your video…',
+  'Building your SEO landing page…',
+]
+
+function GeneratingState() {
+  const [msgIndex, setMsgIndex] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setMsgIndex(i => (i + 1) % GENERATING_MESSAGES.length)
+    }, 2200)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <div style={gs.card}>
+      <div style={gs.topRow}>
+        <span className="generating-pulse" style={gs.sparkle}>✦</span>
+        <div>
+          <p style={gs.title}>Generating your marketing content…</p>
+          <p style={gs.message}>{GENERATING_MESSAGES[msgIndex]}</p>
+        </div>
+      </div>
+      <div style={gs.track}>
+        <div className="progress-bar-fill" style={gs.fill} />
+      </div>
+      <p style={gs.note}>This usually takes 10–20 seconds. Generating all 6 formats in one pass.</p>
     </div>
   )
 }
@@ -498,5 +557,55 @@ const s: Record<string, React.CSSProperties> = {
     color: '#4b5563',
     boxShadow: 'none',
     cursor: 'not-allowed',
+  },
+}
+
+const gs: Record<string, React.CSSProperties> = {
+  card: {
+    marginTop: '32px',
+    background: '#1c1c24',
+    border: '1px solid #2e2e3a',
+    borderRadius: '12px',
+    padding: '28px 32px',
+  },
+  topRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    marginBottom: '20px',
+  },
+  sparkle: {
+    fontSize: '28px',
+    color: '#a855f7',
+    flexShrink: 0,
+  },
+  title: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#e5e7eb',
+    margin: '0 0 4px',
+  },
+  message: {
+    fontSize: '13px',
+    color: '#9ca3af',
+    margin: 0,
+    minHeight: '18px',
+  },
+  track: {
+    height: '4px',
+    background: '#2e2e3a',
+    borderRadius: '2px',
+    overflow: 'hidden',
+    marginBottom: '16px',
+  },
+  fill: {
+    height: '100%',
+    background: 'linear-gradient(90deg, #9333ea, #a855f7)',
+    borderRadius: '2px',
+  },
+  note: {
+    fontSize: '12px',
+    color: '#4b5563',
+    margin: 0,
   },
 }
