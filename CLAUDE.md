@@ -78,6 +78,7 @@ Extends Supabase auth.users.
 - `full_name` (text)
 - `email` (text)
 - `credits_remaining` (integer, default: 3)
+- `avatar_url` (text, nullable) — public Supabase Storage URL, stored under `avatars/{userId}/{filename}`
 - `created_at` (timestamp)
 
 ### `listings`
@@ -91,7 +92,7 @@ Extends Supabase auth.users.
 - `neighborhood_highlights` (text)
 - `target_buyer` (text)
 - `additional_notes` (text)
-- `image_url` (text, nullable) — public Supabase Storage URL, stored under `{userId}/{listingId}/{filename}`
+- `image_url` (text, nullable) — public Supabase Storage URL, stored under `{userId}/{listingId}/{timestamp}-{filename}`
 - `created_at` (timestamp)
 
 ### `generated_outputs`
@@ -145,6 +146,26 @@ Extends Supabase auth.users.
 - Tabs should be clearly labeled, content should be well-formatted, and copy buttons must be prominent.
 - A loading state (with a progress indicator) is important — generation may take 5–15 seconds.
 - Saved listings should be accessible from a simple dashboard so agents can revisit past work.
+- **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
+- **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button). This keeps the two actions — viewing marketing content and editing listing details — feeling distinct and purposeful.
+
+---
+
+## UI Patterns & Component Notes
+
+### `EditListingModal`
+- Located at `src/components/EditListingModal.tsx`
+- Reusable modal for editing listing details and replacing property images
+- Triggered from two places: the pencil icon on dashboard cards, and the "Edit Listing" button on the listing detail page
+- On save, updates the `listings` table and handles image replacement via Supabase Storage
+- Uses timestamps in storage filenames to avoid browser caching issues (e.g. `{userId}/{listingId}/{timestamp}-{filename}`)
+- Parent components update their local state after a successful save so UI reflects changes immediately
+- Scrollable to handle all fields on smaller screens
+
+### Dashboard Cards
+- 3 columns desktop, 2 columns tablet, 1 column mobile
+- Each card shows: property image (or placeholder), address, price, property type, beds/baths, date generated
+- Two actions per card: "View Marketing Content →" (navigates to listing detail) and a pencil icon (opens EditListingModal)
 
 ---
 
@@ -234,7 +255,8 @@ Agents work with a property for weeks or months. Every milestone is a new market
 - [x] Step 10 polish & UX pass complete
 - [x] Property image upload (Supabase Storage)
 - [x] Dashboard card grid redesign with listing detail page
-- [ ] Step A2a — image upload on existing listings + edit listing details
-- [ ] Step B — Profile / Account page
+- [x] Step A2a — image upload on existing listings + edit listing details
+- [x] Step B — Profile / Account page with avatar upload
+- [ ] Step A2b — EditListingModal refactor (reusable modal from dashboard + detail page)
 - [ ] Step C — Landing page
 - [ ] MVP deployed
