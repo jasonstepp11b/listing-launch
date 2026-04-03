@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import NewListing from './pages/NewListing'
+import ListingDetail from './pages/ListingDetail'
 
 export default function App() {
   return (
@@ -24,6 +25,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <NewListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/listing/:id"
+            element={
+              <ProtectedRoute>
+                <ListingDetail />
               </ProtectedRoute>
             }
           />

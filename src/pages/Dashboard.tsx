@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import GeneratedOutput from '../components/GeneratedOutput'
-import type { GeneratedOutputs } from '../lib/generateContent'
 
 interface Listing {
   id: string
   address: string
   price: number
+  bedrooms: number
+  bathrooms: number
   property_type: string
   created_at: string
-  generated_outputs: GeneratedOutputs[]
+  image_url: string | null
 }
 
 export default function Dashboard() {
@@ -20,7 +20,8 @@ export default function Dashboard() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loadingListings, setLoadingListings] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const displayName = user?.user_metadata?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
 
   useEffect(() => {
     document.title = 'ListingIgnite — Dashboard'
@@ -33,7 +34,7 @@ export default function Dashboard() {
       try {
         const { data, error } = await supabase
           .from('listings')
-          .select('id, address, price, property_type, created_at, generated_outputs(*)')
+          .select('id, address, price, bedrooms, bathrooms, property_type, created_at, image_url')
           .eq('user_id', user!.id)
           .order('created_at', { ascending: false })
 
@@ -52,14 +53,6 @@ export default function Dashboard() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     navigate('/login', { replace: true })
-  }
-
-  function formatPrice(price: number) {
-    return '$' + price.toLocaleString()
-  }
-
-  function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
   return (
@@ -86,7 +79,7 @@ export default function Dashboard() {
         {/* Header row */}
         <div style={s.header}>
           <div>
-            <h1 style={s.heading}>Your Listings</h1>
+            <h1 style={s.heading}>Welcome back, {displayName}</h1>
             <p style={s.subheading}>All your generated marketing content, saved automatically.</p>
           </div>
           <Link
@@ -106,7 +99,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Listings */}
+        {/* Content */}
         {loadingListings ? (
           <div style={s.stateBox}>
             <span className="generating-pulse" style={s.stateSparkle}>✦</span>
@@ -118,48 +111,12 @@ export default function Dashboard() {
             <button style={s.retryBtn} onClick={() => window.location.reload()}>Retry</button>
           </div>
         ) : listings.length === 0 ? (
-          <div style={s.emptyCard}>
-            <div style={s.emptyIcon}>🏡</div>
-            <h2 style={s.emptyHeading}>No listings yet</h2>
-            <p style={s.emptyText}>Create your first listing and generate all your marketing content in seconds.</p>
-            <Link to="/new-listing" style={s.newBtn}>✦ Create Your First Listing</Link>
-          </div>
+          <EmptyState creditsLeft={credits ?? 0} />
         ) : (
-          <div>
-            {listings.map(listing => {
-              const isExpanded = expandedId === listing.id
-              const outputs = listing.generated_outputs?.[0] ?? null
-
-              return (
-                <div key={listing.id} style={s.listingCard}>
-                  <div style={s.listingCardTop}>
-                    <div style={s.listingMeta}>
-                      <h2 style={s.listingAddress}>{listing.address}</h2>
-                      <div style={s.listingPills}>
-                        <span style={s.pill}>{formatPrice(listing.price)}</span>
-                        <span style={s.pill}>{listing.property_type}</span>
-                        <span style={{ ...s.pill, ...s.pillMuted }}>{formatDate(listing.created_at)}</span>
-                      </div>
-                    </div>
-                    <button
-                      style={isExpanded ? { ...s.viewBtn, ...s.viewBtnActive } : s.viewBtn}
-                      onClick={() => setExpandedId(isExpanded ? null : listing.id)}
-                    >
-                      {isExpanded ? 'Collapse ↑' : 'View Content ↓'}
-                    </button>
-                  </div>
-
-                  {isExpanded && (
-                    <div style={s.outputWrapper}>
-                      {outputs
-                        ? <GeneratedOutput outputs={outputs} noTopMargin />
-                        : <p style={s.noOutputs}>No generated content found for this listing.</p>
-                      }
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          <div className="card-grid">
+            {listings.map(listing => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
           </div>
         )}
 
@@ -167,6 +124,76 @@ export default function Dashboard() {
     </div>
   )
 }
+
+// ─── Empty state ────────────────────────────────────────────────────────────
+
+function EmptyState({ creditsLeft }: { creditsLeft: number }) {
+  return (
+    <div style={e.wrap}>
+      <div style={e.iconRing}>🏡</div>
+      <h2 style={e.heading}>No listings yet</h2>
+      <p style={e.body}>
+        Create your first listing and get a complete set of marketing content — MLS description,
+        social posts, email blast, flyer copy, video script, and SEO page — in seconds.
+      </p>
+      <Link
+        to="/new-listing"
+        style={creditsLeft === 0 ? { ...e.cta, ...e.ctaDisabled } : e.cta}
+        onClick={evt => { if (creditsLeft === 0) evt.preventDefault() }}
+      >
+        ✦ Create Your First Listing
+      </Link>
+      <div style={e.pillsRow}>
+        {['MLS Description', 'Social Posts', 'Email Blast', 'Flyer Copy', 'Video Script', 'SEO Page'].map(label => (
+          <span key={label} style={e.pill}>{label}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Listing card ────────────────────────────────────────────────────────────
+
+function ListingCard({ listing }: { listing: Listing }) {
+  function formatPrice(price: number) {
+    return '$' + price.toLocaleString()
+  }
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  return (
+    <div style={c.card}>
+      {/* Image */}
+      {listing.image_url ? (
+        <img src={listing.image_url} alt={listing.address} style={c.image} />
+      ) : (
+        <div style={c.imagePlaceholder}>
+          <span style={c.placeholderIcon}>🏡</span>
+        </div>
+      )}
+
+      {/* Body */}
+      <div style={c.body}>
+        <div style={c.typeBadge}>{listing.property_type}</div>
+        <p style={c.address}>{listing.address}</p>
+        <p style={c.price}>{formatPrice(listing.price)}</p>
+        <div style={c.stats}>
+          <span style={c.stat}>{listing.bedrooms} bd</span>
+          <span style={c.statDot}>·</span>
+          <span style={c.stat}>{listing.bathrooms} ba</span>
+          <span style={c.statDot}>·</span>
+          <span style={c.statDate}>{formatDate(listing.created_at)}</span>
+        </div>
+        <Link to={`/listing/${listing.id}`} style={c.viewBtn}>
+          View Marketing Content →
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const s: Record<string, React.CSSProperties> = {
   page: {
@@ -177,19 +204,17 @@ const s: Record<string, React.CSSProperties> = {
     padding: '0 0 80px',
   },
   container: {
-    maxWidth: '860px',
+    maxWidth: '1160px',
     margin: '0 auto',
     padding: '0 24px',
   },
-
-  // Nav
   nav: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '20px 0',
     borderBottom: '1px solid #2e2e3a',
-    marginBottom: '40px',
+    marginBottom: '48px',
     flexWrap: 'wrap',
     gap: '12px',
   },
@@ -243,13 +268,11 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     fontFamily: 'inherit',
   },
-
-  // Header
   header: {
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: '28px',
+    marginBottom: '32px',
     gap: '16px',
     flexWrap: 'wrap',
   },
@@ -259,6 +282,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#f3f4f6',
     margin: '0 0 6px',
     letterSpacing: '-0.5px',
+    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
   },
   subheading: {
     fontSize: '14px',
@@ -283,8 +307,6 @@ const s: Record<string, React.CSSProperties> = {
     boxShadow: 'none',
     cursor: 'not-allowed',
   },
-
-  // Paywall
   paywall: {
     background: 'rgba(239, 68, 68, 0.08)',
     border: '1px solid rgba(239, 68, 68, 0.25)',
@@ -292,12 +314,10 @@ const s: Record<string, React.CSSProperties> = {
     padding: '14px 20px',
     fontSize: '14px',
     color: '#fca5a5',
-    marginBottom: '28px',
+    marginBottom: '32px',
     lineHeight: '1.5',
     textAlign: 'left',
   },
-
-  // Loading / error states
   stateBox: {
     display: 'flex',
     flexDirection: 'column',
@@ -337,104 +357,167 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     fontFamily: 'inherit',
   },
+}
 
-  // Empty state
-  emptyCard: {
-    background: '#1c1c24',
-    border: '1px solid #2e2e3a',
-    borderRadius: '16px',
-    padding: '60px 40px',
+const e: Record<string, React.CSSProperties> = {
+  wrap: {
     textAlign: 'center',
+    padding: '80px 24px',
+    maxWidth: '520px',
+    margin: '0 auto',
   },
-  emptyIcon: {
-    fontSize: '40px',
-    marginBottom: '16px',
-  },
-  emptyHeading: {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#f3f4f6',
-    margin: '0 0 10px',
-  },
-  emptyText: {
-    fontSize: '14px',
-    color: '#9ca3af',
-    margin: '0 0 28px',
-    lineHeight: '1.6',
-  },
-
-  // Listing cards
-  listingCard: {
-    background: '#1c1c24',
-    border: '1px solid #2e2e3a',
-    borderRadius: '12px',
-    marginBottom: '16px',
-    overflow: 'hidden',
-  },
-  listingCardTop: {
+  iconRing: {
+    width: '72px',
+    height: '72px',
+    borderRadius: '50%',
+    background: 'rgba(168, 85, 247, 0.12)',
+    border: '1px solid rgba(168, 85, 247, 0.25)',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '20px 24px',
-    gap: '16px',
-    flexWrap: 'wrap',
+    justifyContent: 'center',
+    fontSize: '30px',
+    margin: '0 auto 20px',
   },
-  listingMeta: {
-    flex: 1,
-    minWidth: 0,
-  },
-  listingAddress: {
-    fontSize: '16px',
-    fontWeight: '600',
+  heading: {
+    fontSize: '22px',
+    fontWeight: '700',
     color: '#f3f4f6',
-    margin: '0 0 8px',
-    textAlign: 'left',
+    margin: '0 0 10px',
+    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
   },
-  listingPills: {
+  body: {
+    fontSize: '14px',
+    color: '#9ca3af',
+    lineHeight: '1.65',
+    margin: '0 0 28px',
+  },
+  cta: {
+    display: 'inline-block',
+    padding: '12px 28px',
+    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    color: '#fff',
+    borderRadius: '9px',
+    fontSize: '14px',
+    fontWeight: '700',
+    textDecoration: 'none',
+    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    marginBottom: '32px',
+  },
+  ctaDisabled: {
+    background: '#2e2e3a',
+    color: '#4b5563',
+    boxShadow: 'none',
+    cursor: 'not-allowed',
+  },
+  pillsRow: {
     display: 'flex',
-    gap: '8px',
     flexWrap: 'wrap',
+    gap: '8px',
+    justifyContent: 'center',
   },
   pill: {
-    padding: '3px 10px',
+    padding: '4px 12px',
+    background: 'rgba(168, 85, 247, 0.08)',
+    border: '1px solid rgba(168, 85, 247, 0.2)',
+    borderRadius: '20px',
+    fontSize: '12px',
+    color: '#7c3aed',
+    fontWeight: '500',
+  },
+}
+
+const c: Record<string, React.CSSProperties> = {
+  card: {
+    background: '#1c1c24',
+    border: '1px solid #2e2e3a',
+    borderRadius: '14px',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  image: {
+    width: '100%',
+    height: '180px',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: '180px',
+    background: 'linear-gradient(135deg, rgba(147,51,234,0.12) 0%, rgba(124,58,237,0.06) 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderIcon: {
+    fontSize: '36px',
+    opacity: 0.4,
+  },
+  body: {
+    padding: '18px 20px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+  },
+  typeBadge: {
+    display: 'inline-block',
+    padding: '2px 9px',
     background: 'rgba(168, 85, 247, 0.12)',
     border: '1px solid rgba(168, 85, 247, 0.25)',
     borderRadius: '20px',
-    fontSize: '12px',
-    fontWeight: '500',
+    fontSize: '11px',
+    fontWeight: '600',
     color: '#c084fc',
+    letterSpacing: '0.3px',
+    textTransform: 'uppercase',
+    marginBottom: '8px',
+    alignSelf: 'flex-start',
   },
-  pillMuted: {
-    background: '#16161e',
-    border: '1px solid #2e2e3a',
-    color: '#6b7280',
+  address: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#f3f4f6',
+    margin: '0 0 4px',
+    lineHeight: '1.35',
+  },
+  price: {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#a855f7',
+    margin: '0 0 10px',
+    letterSpacing: '-0.3px',
+  },
+  stats: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    marginBottom: '16px',
+    flex: 1,
+  },
+  stat: {
+    fontSize: '12px',
+    color: '#9ca3af',
+    fontWeight: '500',
+  },
+  statDot: {
+    color: '#3a3a4a',
+    fontSize: '12px',
+  },
+  statDate: {
+    fontSize: '12px',
+    color: '#4b5563',
   },
   viewBtn: {
-    flexShrink: 0,
-    padding: '9px 18px',
-    background: 'transparent',
-    border: '1px solid #3a3a4a',
+    display: 'block',
+    padding: '10px 16px',
+    background: 'rgba(168, 85, 247, 0.1)',
+    border: '1px solid rgba(168, 85, 247, 0.25)',
     borderRadius: '8px',
-    color: '#9ca3af',
+    color: '#c084fc',
     fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-  },
-  viewBtnActive: {
-    border: '1px solid #a855f7',
-    color: '#a855f7',
-    background: 'rgba(168, 85, 247, 0.08)',
-  },
-  outputWrapper: {
-    padding: '0 24px 24px',
-    borderTop: '1px solid #2e2e3a',
-  },
-  noOutputs: {
-    textAlign: 'left',
-    fontSize: '14px',
-    color: '#6b7280',
-    padding: '16px 0',
-    margin: 0,
+    fontWeight: '600',
+    textDecoration: 'none',
+    textAlign: 'center',
+    marginTop: 'auto',
   },
 }

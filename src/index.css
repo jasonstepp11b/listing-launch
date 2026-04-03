@@ -108,6 +108,19 @@ body {
   .form-section-pad { padding: 20px 16px; }
 }
 
+/* Responsive card grid used by Dashboard */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 960px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 580px) {
+  .card-grid { grid-template-columns: 1fr; }
+}
+
 @keyframes pulse-glow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
