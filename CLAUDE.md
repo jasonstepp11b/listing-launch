@@ -93,6 +93,7 @@ Extends Supabase auth.users.
 - `target_buyer` (text)
 - `additional_notes` (text)
 - `image_url` (text, nullable) — public Supabase Storage URL, stored under `{userId}/{listingId}/{timestamp}-{filename}`
+- `status` (text, default: `active`) — one of: `active`, `sold`, `inactive` (see Listing Status section below)
 - `created_at` (timestamp)
 
 ### `generated_outputs`
@@ -147,6 +148,7 @@ Extends Supabase auth.users.
 - A loading state (with a progress indicator) is important — generation may take 5–15 seconds.
 - Saved listings should be accessible from a simple dashboard so agents can revisit past work.
 - **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
+- **No hard deletes.** Listings are never permanently deleted — they are marked as `sold` or `inactive` to preserve data integrity and credit history.
 - **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button). This keeps the two actions — viewing marketing content and editing listing details — feeling distinct and purposeful.
 
 ---
@@ -166,6 +168,7 @@ Extends Supabase auth.users.
 - 3 columns desktop, 2 columns tablet, 1 column mobile
 - Each card shows: property image (or placeholder), address, price, property type, beds/baths, date generated
 - Two actions per card: "View Marketing Content →" (navigates to listing detail) and a pencil icon (opens EditListingModal)
+- Dashboard only shows `active` listings by default — sold/inactive listings are accessible via a separate filter or tab
 
 ---
 
@@ -187,10 +190,37 @@ Extends Supabase auth.users.
 - Mobile app
 - Agent writing style personalization (see Future Roadmap below)
 - Projects concept / multi-campaign per property (see Future Roadmap below)
+- Listing status management / sold & inactive listings (see Future Roadmap below)
 
 ---
 
 ## Future Roadmap (Post-MVP)
+
+### 🏷️ Listing Status — Sold & Inactive
+**Priority: Medium — build after core MVP is validated with real users**
+
+Agents need a way to mark listings as no longer active without permanently deleting them. Hard deletes are intentionally avoided to preserve data integrity and prevent credit abuse disputes.
+
+**Three statuses:**
+- `active` — default, shows on the main dashboard
+- `sold` — property successfully sold 🎉, hidden from active dashboard, shown in a "Sold" history view
+- `inactive` — listing withdrawn, expired, or paused for other reasons, hidden from active dashboard, shown in an "Inactive" view
+
+**Implementation:**
+- Add a `status` column (text, default: `active`) to the `listings` table
+- On the listing detail page, add a "Mark as Sold" button and a "Mark as Inactive" button in a clearly separated section (e.g. below the marketing content, labeled "Listing Status")
+- The dashboard filters to `status = active` by default
+- Add a filter or secondary tab on the dashboard to view Sold and Inactive listings separately
+- Sold listings could display a celebratory "🎉 Sold!" badge on their card
+- Status changes are always reversible — agents can reactivate a listing if needed (e.g. a deal falls through)
+- Status changes never affect credits
+
+**Why no hard delete:**
+Agents may forget they generated content, then claim they were charged incorrectly. Keeping all listings in the database with a status field gives us a clear audit trail to resolve any disputes.
+
+**Trigger to build:** When agents start asking "how do I remove a listing from my dashboard?"
+
+---
 
 ### ✍️ Agent Writing Style Personalization
 **Priority: High — build after core MVP is validated**
