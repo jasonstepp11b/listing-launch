@@ -204,6 +204,7 @@ export default function Dashboard() {
           listingId={editingListingId}
           onClose={() => setEditingListingId(null)}
           onSaved={updated => { handleListingSaved(updated); setEditingListingId(null) }}
+          onStatusChanged={status => handleStatusChanged(editingListingId, status)}
         />
       )}
     </div>

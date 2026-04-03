@@ -34,7 +34,6 @@ export default function ListingDetail() {
   const [error, setError] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [savedOk, setSavedOk] = useState(false)
-  const [statusUpdating, setStatusUpdating] = useState(false)
 
   useEffect(() => {
     document.title = 'ListingIgnite — Listing Detail'
@@ -69,33 +68,6 @@ export default function ListingDetail() {
     setListing(prev => prev ? { ...prev, ...updated } : prev)
     setSavedOk(true)
     setTimeout(() => setSavedOk(false), 3000)
-  }
-
-  async function handleStatusChange(newStatus: 'active' | 'sold' | 'inactive') {
-    if (!listing) return
-    const labels: Record<string, string> = {
-      sold: 'Mark as Sold',
-      inactive: 'Mark as Inactive',
-      active: 'Reactivate',
-    }
-    const confirmMessages: Record<string, string> = {
-      sold: 'Mark this listing as Sold? It will move to your Sold listings.',
-      inactive: 'Mark this listing as Inactive? It will be hidden from your Active dashboard.',
-      active: 'Reactivate this listing? It will move back to your Active dashboard.',
-    }
-    if (!window.confirm(confirmMessages[newStatus])) return
-
-    setStatusUpdating(true)
-    const { error } = await supabase
-      .from('listings')
-      .update({ status: newStatus })
-      .eq('id', listing.id)
-      .eq('user_id', user!.id)
-
-    setStatusUpdating(false)
-    if (!error) {
-      setListing(prev => prev ? { ...prev, status: newStatus } : prev)
-    }
   }
 
   function formatPrice(price: number) {
@@ -147,7 +119,12 @@ export default function ListingDetail() {
               )}
               <div style={s.headerInfo}>
                 <div style={s.headerInfoTop}>
-                  <div style={s.propertyTypeBadge}>{listing.property_type}</div>
+                  <div style={s.badgeRow}>
+                    <div style={s.propertyTypeBadge}>{listing.property_type}</div>
+                    {listing.status === 'active' && <div style={{ ...s.statusBadge, ...s.statusBadgeActive }}>Active</div>}
+                    {listing.status === 'sold' && <div style={{ ...s.statusBadge, ...s.statusBadgeSold }}>🎉 Sold</div>}
+                    {listing.status === 'inactive' && <div style={{ ...s.statusBadge, ...s.statusBadgeInactive }}>Inactive</div>}
+                  </div>
                   <button style={s.editBtn} onClick={() => setEditOpen(true)}>Edit Listing</button>
                 </div>
                 <h1 style={s.address}>{listing.address}</h1>
@@ -184,55 +161,13 @@ export default function ListingDetail() {
               </div>
             )}
 
-            {/* Listing Status */}
-            <div style={s.statusSection}>
-              <h2 style={s.statusHeading}>Listing Status</h2>
-              <div style={s.statusRow}>
-                {listing.status === 'active' && <span style={{ ...s.statusBadge, ...s.statusBadgeActive }}>● Active</span>}
-                {listing.status === 'sold' && <span style={{ ...s.statusBadge, ...s.statusBadgeSold }}>🎉 Sold</span>}
-                {listing.status === 'inactive' && <span style={{ ...s.statusBadge, ...s.statusBadgeInactive }}>● Inactive</span>}
-              </div>
-              <div style={s.statusActions}>
-                {listing.status === 'active' ? (
-                  <>
-                    <button
-                      style={statusUpdating ? { ...s.statusBtn, ...s.statusBtnSold, opacity: 0.6 } : { ...s.statusBtn, ...s.statusBtnSold }}
-                      disabled={statusUpdating}
-                      onClick={() => handleStatusChange('sold')}
-                    >
-                      Mark as Sold 🎉
-                    </button>
-                    <button
-                      style={statusUpdating ? { ...s.statusBtn, opacity: 0.6 } : s.statusBtn}
-                      disabled={statusUpdating}
-                      onClick={() => handleStatusChange('inactive')}
-                    >
-                      Mark as Inactive
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    style={statusUpdating ? { ...s.statusBtn, ...s.statusBtnReactivate, opacity: 0.6 } : { ...s.statusBtn, ...s.statusBtnReactivate }}
-                    disabled={statusUpdating}
-                    onClick={() => handleStatusChange('active')}
-                  >
-                    Reactivate Listing
-                  </button>
-                )}
-              </div>
-              <p style={s.statusNote}>
-                {listing.status === 'active'
-                  ? 'Mark as sold when the property closes, or inactive if the listing is paused. Both actions are reversible.'
-                  : 'This listing is hidden from your Active dashboard. Reactivate it at any time.'}
-              </p>
-            </div>
-
             {/* Edit modal */}
             {editOpen && (
               <EditListingModal
                 listingId={listing.id}
                 onClose={() => setEditOpen(false)}
                 onSaved={handleSaved}
+                onStatusChanged={status => setListing(prev => prev ? { ...prev, status } : prev)}
               />
             )}
           </>
@@ -384,29 +319,15 @@ const s: Record<string, React.CSSProperties> = {
     textAlign: 'center',
   },
   noOutputsText: { fontSize: '14px', color: '#6b7280', margin: 0 },
-  statusSection: {
-    marginTop: '40px',
-    paddingTop: '32px',
-    borderTop: '1px solid #2e2e3a',
-  },
-  statusHeading: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#6b7280',
-    margin: '0 0 16px',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.6px',
-  },
-  statusRow: {
-    marginBottom: '16px',
-  },
+  badgeRow: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' as const },
   statusBadge: {
     display: 'inline-block',
-    padding: '5px 14px',
+    padding: '3px 10px',
     borderRadius: '20px',
-    fontSize: '13px',
+    fontSize: '11px',
     fontWeight: '600',
-    border: '1px solid transparent',
+    letterSpacing: '0.3px',
+    textTransform: 'uppercase' as const,
   },
   statusBadgeActive: {
     background: 'rgba(34, 197, 94, 0.1)',
@@ -422,36 +343,5 @@ const s: Record<string, React.CSSProperties> = {
     background: 'rgba(75, 85, 99, 0.2)',
     border: '1px solid #3a3a4a',
     color: '#9ca3af',
-  },
-  statusActions: {
-    display: 'flex',
-    gap: '10px',
-    flexWrap: 'wrap' as const,
-    marginBottom: '14px',
-  },
-  statusBtn: {
-    padding: '9px 18px',
-    background: 'transparent',
-    border: '1px solid #3a3a4a',
-    borderRadius: '7px',
-    color: '#9ca3af',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-  },
-  statusBtnSold: {
-    border: '1px solid rgba(234, 179, 8, 0.4)',
-    color: '#fde047',
-  },
-  statusBtnReactivate: {
-    border: '1px solid rgba(34, 197, 94, 0.4)',
-    color: '#86efac',
-  },
-  statusNote: {
-    fontSize: '12px',
-    color: '#4b5563',
-    margin: 0,
-    lineHeight: '1.5',
   },
 }

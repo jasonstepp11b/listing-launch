@@ -36,6 +36,7 @@ interface FullListing {
   target_buyer: string | null
   additional_notes: string | null
   image_url: string | null
+  status: string
 }
 
 interface EditForm {
@@ -71,6 +72,7 @@ interface Props {
   listingId: string
   onClose: () => void
   onSaved: (data: SavedListingData) => void
+  onStatusChanged?: (status: 'active' | 'sold' | 'inactive') => void
 }
 
 function listingToForm(l: FullListing): EditForm {
@@ -90,13 +92,15 @@ function listingToForm(l: FullListing): EditForm {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function EditListingModal({ listingId, onClose, onSaved }: Props) {
+export default function EditListingModal({ listingId, onClose, onSaved, onStatusChanged }: Props) {
   const { user } = useAuth()
 
   const [loadingListing, setLoadingListing] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [form, setForm] = useState<EditForm | null>(null)
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null)
+  const [originalStatus, setOriginalStatus] = useState<'active' | 'sold' | 'inactive'>('active')
+  const [listingStatus, setListingStatus] = useState<'active' | 'sold' | 'inactive'>('active')
 
   const [newImageFile, setNewImageFile] = useState<File | null>(null)
   const [newImagePreview, setNewImagePreview] = useState<string | null>(null)
@@ -113,7 +117,7 @@ export default function EditListingModal({ listingId, onClose, onSaved }: Props)
     if (!user) return
     supabase
       .from('listings')
-      .select('id, address, price, bedrooms, bathrooms, sqft, property_type, features, neighborhood_highlights, target_buyer, additional_notes, image_url')
+      .select('id, address, price, bedrooms, bathrooms, sqft, property_type, features, neighborhood_highlights, target_buyer, additional_notes, image_url, status')
       .eq('id', listingId)
       .eq('user_id', user.id)
       .single()
@@ -124,6 +128,9 @@ export default function EditListingModal({ listingId, onClose, onSaved }: Props)
           const l = data as FullListing
           setForm(listingToForm(l))
           setExistingImageUrl(l.image_url)
+          const s = l.status as 'active' | 'sold' | 'inactive'
+          setOriginalStatus(s)
+          setListingStatus(s)
         }
         setLoadingListing(false)
       })
@@ -186,6 +193,12 @@ export default function EditListingModal({ listingId, onClose, onSaved }: Props)
     if (file) handleImageFile(file)
   }
 
+  // ── Status change (pending — saved with the form on Save Changes) ──────────
+
+  function handleStatusChange(newStatus: 'active' | 'sold' | 'inactive') {
+    setListingStatus(newStatus)
+  }
+
   // ── Save ──────────────────────────────────────────────────────────────────
 
   async function handleSave() {
@@ -221,6 +234,7 @@ export default function EditListingModal({ listingId, onClose, onSaved }: Props)
         neighborhood_highlights: form.neighborhoodHighlights.trim() || null,
         target_buyer: form.targetBuyer || null,
         additional_notes: form.additionalNotes.trim() || null,
+        status: listingStatus,
       }
       if (newImageUrl !== undefined) payload.image_url = newImageUrl
 
@@ -236,6 +250,7 @@ export default function EditListingModal({ listingId, onClose, onSaved }: Props)
         : existingImageUrl
 
       setSavedOk(true)
+      if (listingStatus !== originalStatus) onStatusChanged?.(listingStatus)
 
       // Give the user a moment to see the success state, then close
       setTimeout(() => {
@@ -308,6 +323,35 @@ export default function EditListingModal({ listingId, onClose, onSaved }: Props)
             </div>
           ) : form ? (
             <>
+              {/* Listing Status */}
+              <section style={f.section} className="form-section-pad">
+                <h3 style={f.sectionTitle}>Listing Status</h3>
+                <div style={f.statusBadgeRow}>
+                  {listingStatus === 'active' && <span style={{ ...f.statusBadge, ...f.statusBadgeActive }}>● Active</span>}
+                  {listingStatus === 'sold' && <span style={{ ...f.statusBadge, ...f.statusBadgeSold }}>🎉 Sold</span>}
+                  {listingStatus === 'inactive' && <span style={{ ...f.statusBadge, ...f.statusBadgeInactive }}>● Inactive</span>}
+                  {listingStatus !== originalStatus && (
+                    <span style={f.unsavedPill}>unsaved</span>
+                  )}
+                </div>
+                <div style={f.statusActions}>
+                  {listingStatus === 'active' ? (
+                    <>
+                      <button style={{ ...f.statusBtn, ...f.statusBtnSold }} onClick={() => handleStatusChange('sold')}>
+                        Mark as Sold 🎉
+                      </button>
+                      <button style={f.statusBtn} onClick={() => handleStatusChange('inactive')}>
+                        Mark as Inactive
+                      </button>
+                    </>
+                  ) : (
+                    <button style={{ ...f.statusBtn, ...f.statusBtnReactivate }} onClick={() => handleStatusChange('active')}>
+                      Reactivate Listing
+                    </button>
+                  )}
+                </div>
+              </section>
+
               {/* Property Details */}
               <section style={f.section} className="form-section-pad">
                 <h3 style={f.sectionTitle}>Property Details</h3>
@@ -734,5 +778,65 @@ const f: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     fontFamily: 'inherit',
     backdropFilter: 'blur(4px)',
+  },
+  statusBadgeRow: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' },
+  unsavedPill: {
+    display: 'inline-block',
+    padding: '2px 8px',
+    background: 'rgba(251, 191, 36, 0.1)',
+    border: '1px solid rgba(251, 191, 36, 0.25)',
+    borderRadius: '20px',
+    fontSize: '10px',
+    fontWeight: '600',
+    color: '#fbbf24',
+    letterSpacing: '0.3px',
+    textTransform: 'uppercase' as const,
+  },
+  statusBadge: {
+    display: 'inline-block',
+    padding: '4px 12px',
+    borderRadius: '20px',
+    fontSize: '12px',
+    fontWeight: '600',
+    border: '1px solid transparent',
+  },
+  statusBadgeActive: {
+    background: 'rgba(34, 197, 94, 0.1)',
+    border: '1px solid rgba(34, 197, 94, 0.3)',
+    color: '#86efac',
+  },
+  statusBadgeSold: {
+    background: 'rgba(234, 179, 8, 0.12)',
+    border: '1px solid rgba(234, 179, 8, 0.35)',
+    color: '#fde047',
+  },
+  statusBadgeInactive: {
+    background: 'rgba(75, 85, 99, 0.2)',
+    border: '1px solid #3a3a4a',
+    color: '#9ca3af',
+  },
+  statusActions: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap' as const,
+  },
+  statusBtn: {
+    padding: '7px 14px',
+    background: 'transparent',
+    border: '1px solid #3a3a4a',
+    borderRadius: '6px',
+    color: '#9ca3af',
+    fontSize: '12px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  },
+  statusBtnSold: {
+    border: '1px solid rgba(234, 179, 8, 0.4)',
+    color: '#fde047',
+  },
+  statusBtnReactivate: {
+    border: '1px solid rgba(34, 197, 94, 0.4)',
+    color: '#86efac',
   },
 }
