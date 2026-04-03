@@ -14,6 +14,7 @@ interface Listing {
   property_type: string
   created_at: string
   image_url: string | null
+  status: string
 }
 
 export default function Dashboard() {
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [editingListingId, setEditingListingId] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<'active' | 'sold' | 'inactive'>('active')
 
   const displayName = user?.user_metadata?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
 
@@ -48,7 +50,7 @@ export default function Dashboard() {
       try {
         const { data, error } = await supabase
           .from('listings')
-          .select('id, address, price, bedrooms, bathrooms, property_type, created_at, image_url')
+          .select('id, address, price, bedrooms, bathrooms, property_type, created_at, image_url, status')
           .eq('user_id', user!.id)
           .order('created_at', { ascending: false })
 
@@ -75,6 +77,17 @@ export default function Dashboard() {
         ? { ...l, address: updated.address, price: updated.price, bedrooms: updated.bedrooms, bathrooms: updated.bathrooms, property_type: updated.property_type, image_url: updated.image_url }
         : l
     ))
+  }
+
+  function handleStatusChanged(id: string, newStatus: 'active' | 'sold' | 'inactive') {
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l))
+  }
+
+  const filteredListings = listings.filter(l => l.status === statusFilter)
+  const counts = {
+    active: listings.filter(l => l.status === 'active').length,
+    sold: listings.filter(l => l.status === 'sold').length,
+    inactive: listings.filter(l => l.status === 'inactive').length,
   }
 
   return (
@@ -133,6 +146,24 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Status filter tabs */}
+        {!loadingListings && !fetchError && listings.length > 0 && (
+          <div style={s.filterBar}>
+            {(['active', 'sold', 'inactive'] as const).map(tab => (
+              <button
+                key={tab}
+                style={statusFilter === tab ? { ...s.filterTab, ...s.filterTabActive } : s.filterTab}
+                onClick={() => setStatusFilter(tab)}
+              >
+                {tab === 'active' ? 'Active' : tab === 'sold' ? '🎉 Sold' : 'Inactive'}
+                <span style={statusFilter === tab ? { ...s.filterCount, ...s.filterCountActive } : s.filterCount}>
+                  {counts[tab]}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Content */}
         {loadingListings ? (
           <div style={s.stateBox}>
@@ -146,10 +177,21 @@ export default function Dashboard() {
           </div>
         ) : listings.length === 0 ? (
           <EmptyState creditsLeft={credits ?? 0} />
+        ) : filteredListings.length === 0 ? (
+          <div style={s.stateBox}>
+            <p style={s.stateText}>
+              {statusFilter === 'sold' ? 'No sold listings yet.' : 'No inactive listings.'}
+            </p>
+          </div>
         ) : (
           <div className="card-grid">
-            {listings.map(listing => (
-              <ListingCard key={listing.id} listing={listing} onEdit={() => setEditingListingId(listing.id)} />
+            {filteredListings.map(listing => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                onEdit={() => setEditingListingId(listing.id)}
+                onStatusChanged={handleStatusChanged}
+              />
             ))}
           </div>
         )}
@@ -197,7 +239,15 @@ function EmptyState({ creditsLeft }: { creditsLeft: number }) {
 
 // ─── Listing card ────────────────────────────────────────────────────────────
 
-function ListingCard({ listing, onEdit }: { listing: Listing; onEdit: () => void }) {
+function ListingCard({
+  listing,
+  onEdit,
+  onStatusChanged,
+}: {
+  listing: Listing
+  onEdit: () => void
+  onStatusChanged: (id: string, status: 'active' | 'sold' | 'inactive') => void
+}) {
   function formatPrice(price: number) {
     return '$' + price.toLocaleString()
   }
@@ -219,6 +269,12 @@ function ListingCard({ listing, onEdit }: { listing: Listing; onEdit: () => void
         <button style={c.editIconBtn} onClick={e => { e.preventDefault(); onEdit() }} title="Edit listing">
           ✎
         </button>
+        {listing.status === 'sold' && (
+          <div style={c.statusBadgeSold}>🎉 Sold!</div>
+        )}
+        {listing.status === 'inactive' && (
+          <div style={c.statusBadgeInactive}>Inactive</div>
+        )}
       </div>
 
       {/* Body */}
@@ -423,6 +479,47 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     fontFamily: 'inherit',
   },
+  filterBar: {
+    display: 'flex',
+    gap: '6px',
+    marginBottom: '28px',
+  },
+  filterTab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '7px',
+    padding: '8px 16px',
+    background: 'transparent',
+    border: '1px solid #2e2e3a',
+    borderRadius: '8px',
+    color: '#6b7280',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  },
+  filterTabActive: {
+    background: 'rgba(168, 85, 247, 0.1)',
+    border: '1px solid rgba(168, 85, 247, 0.35)',
+    color: '#c084fc',
+  },
+  filterCount: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '18px',
+    height: '18px',
+    padding: '0 5px',
+    background: '#2e2e3a',
+    borderRadius: '9px',
+    fontSize: '11px',
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  filterCountActive: {
+    background: 'rgba(168, 85, 247, 0.2)',
+    color: '#c084fc',
+  },
 }
 
 const e: Record<string, React.CSSProperties> = {
@@ -540,6 +637,30 @@ const c: Record<string, React.CSSProperties> = {
   placeholderIcon: {
     fontSize: '36px',
     opacity: 0.4,
+  },
+  statusBadgeSold: {
+    position: 'absolute' as const,
+    bottom: '8px',
+    left: '8px',
+    padding: '4px 10px',
+    background: 'rgba(234, 179, 8, 0.9)',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: '700',
+    color: '#1a1025',
+    backdropFilter: 'blur(4px)',
+  },
+  statusBadgeInactive: {
+    position: 'absolute' as const,
+    bottom: '8px',
+    left: '8px',
+    padding: '4px 10px',
+    background: 'rgba(75, 85, 99, 0.85)',
+    borderRadius: '6px',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#d1d5db',
+    backdropFilter: 'blur(4px)',
   },
   body: {
     padding: '18px 20px 20px',
