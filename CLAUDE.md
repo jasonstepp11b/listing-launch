@@ -91,6 +91,7 @@ Extends Supabase auth.users.
 - `neighborhood_highlights` (text)
 - `target_buyer` (text)
 - `additional_notes` (text)
+- `image_url` (text, nullable) — public Supabase Storage URL, stored under `{userId}/{listingId}/{filename}`
 - `created_at` (timestamp)
 
 ### `generated_outputs`
@@ -164,6 +165,7 @@ Extends Supabase auth.users.
 - Email delivery (SMTP / SendGrid)
 - Mobile app
 - Agent writing style personalization (see Future Roadmap below)
+- Projects concept / multi-campaign per property (see Future Roadmap below)
 
 ---
 
@@ -187,6 +189,35 @@ Why this matters: Agents have distinct personal brands. Their audience follows *
 
 ---
 
+### 📁 Projects — Multi-Campaign Per Property
+**Priority: High — major product evolution**
+
+Right now, one listing = one set of marketing content. The Projects concept reframes this into a much more powerful model:
+
+> One property = a living project with multiple marketing campaigns over its lifetime
+
+Instead of "listings," agents would create a **Project** for each property. Within that project, they can run multiple **campaigns** depending on where they are in the sales cycle. Each campaign generates a fresh full set of marketing content tailored to that moment.
+
+**Example campaign types:**
+- **New Listing** — full launch copy, all 6 outputs, maximum excitement
+- **Price Drop** — urgency-focused copy highlighting the new value opportunity
+- **Open House** — event-driven copy with date/time details and a strong CTA to attend
+- **Back on Market** — copy addressing the return with a positive spin
+- **Just Sold** — social proof content for the agent's brand
+
+**Why this matters:**
+Agents work with a property for weeks or months. Every milestone is a new marketing moment. This turns ListingIgnite from a one-time tool into an indispensable part of their entire listing workflow — dramatically increasing retention and credit consumption.
+
+**What needs to change in the data model:**
+- Introduce a `projects` table (one per property) containing the shared property details and image
+- The existing `listings` table effectively becomes `campaigns` — linked to a project, with a `campaign_type` field
+- The dashboard would show projects as the top-level cards, with campaigns nested inside each project
+- Credits are consumed per campaign generation, not per project
+
+**Trigger to build:** After the MVP is validated with real users and the core loop is proven.
+
+---
+
 ## Project Status
 
 - [x] Project scaffolded (Vite + React + TS)
@@ -200,5 +231,10 @@ Why this matters: Agents have distinct personal brands. Their audience follows *
 - [x] Listings saved to Supabase
 - [x] Credit tracking implemented
 - [x] Paywall placeholder built
-- [ ] Step 10 polish & UX pass complete
+- [x] Step 10 polish & UX pass complete
+- [x] Property image upload (Supabase Storage)
+- [x] Dashboard card grid redesign with listing detail page
+- [ ] Step A2a — image upload on existing listings + edit listing details
+- [ ] Step B — Profile / Account page
+- [ ] Step C — Landing page
 - [ ] MVP deployed
