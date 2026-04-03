@@ -80,13 +80,43 @@ function isFormValid(form: FormState): boolean {
   )
 }
 
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
 export default function NewListing() {
   const { user, credits, refreshCredits } = useAuth()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [outputs, setOutputs] = useState<GeneratedOutputs | null>(null)
   const outputRef = useRef<HTMLDivElement>(null)
+
+  function handleImageFile(file: File) {
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError('Please select a JPG, PNG, or WEBP image.')
+      return
+    }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setError(null)
+  }
+
+  function removeImage() {
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+    setImageFile(null)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleImageFile(file)
+  }
 
   function set(field: keyof FormState, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -115,7 +145,7 @@ export default function NewListing() {
       const result = await generateContent(form)
       setOutputs(result)
       try {
-        await saveListing(user.id, form, result)
+        await saveListing(user.id, form, result, imageFile)
         await refreshCredits()
       } catch {
         // Save failed but generation succeeded — show a non-blocking warning
@@ -310,6 +340,42 @@ export default function NewListing() {
                 onChange={e => set('additionalNotes', e.target.value)}
               />
             </div>
+          </section>
+
+          {/* Section: Property Photo */}
+          <section style={s.section} className="form-section-pad">
+            <h2 style={s.sectionTitle}>Property Photo <span style={s.optional}>(Optional)</span></h2>
+            <p style={s.sectionHint}>Attach a hero photo to identify this listing in your dashboard.</p>
+
+            {imagePreview ? (
+              <div style={s.previewWrap}>
+                <img src={imagePreview} alt="Property preview" style={s.previewImg} />
+                <div style={s.previewOverlay}>
+                  <button type="button" style={s.removeBtn} onClick={removeImage}>
+                    ✕ Remove photo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                style={dragOver ? { ...s.dropZone, ...s.dropZoneActive } : s.dropZone}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+              >
+                <div style={s.dropIcon}>🏠</div>
+                <p style={s.dropPrimary}>Drop a photo here, or <span style={s.dropLink}>click to browse</span></p>
+                <p style={s.dropSecondary}>JPG, PNG, or WEBP</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f) }}
+                />
+              </div>
+            )}
           </section>
 
           {/* Footer */}
@@ -567,6 +633,77 @@ const s: Record<string, React.CSSProperties> = {
   },
   tagCheck: {
     color: '#a855f7',
+  },
+
+  optional: {
+    fontWeight: '400',
+    color: '#6b7280',
+    fontSize: '13px',
+    letterSpacing: '0',
+    textTransform: 'none' as const,
+  },
+
+  // Image upload
+  dropZone: {
+    border: '2px dashed #3a3a4a',
+    borderRadius: '10px',
+    padding: '36px 24px',
+    textAlign: 'center' as const,
+    cursor: 'pointer',
+    transition: 'border-color 0.15s, background 0.15s',
+    background: '#13131a',
+  },
+  dropZoneActive: {
+    borderColor: '#a855f7',
+    background: 'rgba(168, 85, 247, 0.06)',
+  },
+  dropIcon: {
+    fontSize: '32px',
+    marginBottom: '12px',
+  },
+  dropPrimary: {
+    fontSize: '14px',
+    color: '#d1d5db',
+    margin: '0 0 4px',
+  },
+  dropLink: {
+    color: '#a855f7',
+    fontWeight: '600',
+  },
+  dropSecondary: {
+    fontSize: '12px',
+    color: '#6b7280',
+    margin: 0,
+  },
+  previewWrap: {
+    position: 'relative' as const,
+    borderRadius: '10px',
+    overflow: 'hidden',
+    border: '1px solid #3a3a4a',
+    lineHeight: 0,
+  },
+  previewImg: {
+    width: '100%',
+    maxHeight: '280px',
+    objectFit: 'cover' as const,
+    display: 'block',
+  },
+  previewOverlay: {
+    position: 'absolute' as const,
+    top: '12px',
+    right: '12px',
+  },
+  removeBtn: {
+    padding: '7px 14px',
+    background: 'rgba(0,0,0,0.65)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    borderRadius: '6px',
+    color: '#f3f4f6',
+    fontSize: '13px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    backdropFilter: 'blur(4px)',
   },
 
   errorMsg: {

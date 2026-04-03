@@ -5,8 +5,9 @@ export async function saveListing(
   userId: string,
   form: ListingInput,
   outputs: GeneratedOutputs,
+  imageFile: File | null = null,
 ): Promise<string> {
-  // Insert listing row
+  // Insert listing row (image_url populated after upload below)
   const { data: listing, error: listingError } = await supabase
     .from('listings')
     .insert({
@@ -21,17 +22,44 @@ export async function saveListing(
       neighborhood_highlights: form.neighborhoodHighlights,
       target_buyer: form.targetBuyer,
       additional_notes: form.additionalNotes,
+      image_url: null,
     })
     .select('id')
     .single()
 
   if (listingError) throw new Error(`Failed to save listing: ${listingError.message}`)
 
+  const listingId = listing.id
+
+  // Upload image if provided, then update the row with the public URL
+  if (imageFile) {
+    const ext = imageFile.name.split('.').pop()
+    const storagePath = `${userId}/${listingId}/photo.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('property-images')
+      .upload(storagePath, imageFile, { upsert: true })
+
+    if (uploadError) {
+      // Non-fatal: listing is already saved, just log and continue without image
+      console.error('Image upload failed:', uploadError.message)
+    } else {
+      const { data: { publicUrl } } = supabase.storage
+        .from('property-images')
+        .getPublicUrl(storagePath)
+
+      await supabase
+        .from('listings')
+        .update({ image_url: publicUrl })
+        .eq('id', listingId)
+    }
+  }
+
   // Insert generated outputs linked to the listing
   const { error: outputError } = await supabase
     .from('generated_outputs')
     .insert({
-      listing_id: listing.id,
+      listing_id: listingId,
       user_id: userId,
       mls_description: outputs.mls_description,
       social_facebook: outputs.social_facebook,
@@ -59,10 +87,9 @@ export async function saveListing(
       .eq('id', userId)
 
     if (creditError) {
-      // Non-fatal: log but don't block the user from seeing their results
       console.error('Failed to decrement credit:', creditError.message)
     }
   }
 
-  return listing.id
+  return listingId
 }
