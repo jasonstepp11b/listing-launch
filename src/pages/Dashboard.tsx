@@ -71,7 +71,15 @@ export default function Dashboard() {
                 {credits} credit{credits !== 1 ? 's' : ''} remaining
               </div>
             )}
-            <span style={s.navEmail}>{user?.email}</span>
+            <Link to="/profile" style={s.avatarLink} title="Account settings">
+              {(() => {
+                const name = user?.user_metadata?.full_name ?? ''
+                const parts = name.trim().split(' ').filter(Boolean)
+                if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                if (parts.length === 1) return parts[0][0].toUpperCase()
+                return user?.email?.[0].toUpperCase() ?? '?'
+              })()}
+            </Link>
             <button style={s.signOutBtn} onClick={handleSignOut}>Sign Out</button>
           </div>
         </div>
@@ -253,9 +261,20 @@ const s: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(239, 68, 68, 0.3)',
     color: '#fca5a5',
   },
-  navEmail: {
-    fontSize: '13px',
-    color: '#6b7280',
+  avatarLink: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: '700',
+    color: '#fff',
+    textDecoration: 'none',
+    flexShrink: 0,
+    letterSpacing: '-0.3px',
   },
   signOutBtn: {
     padding: '7px 16px',
