@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import EditListingModal from '../components/EditListingModal'
+import type { SavedListingData } from '../components/EditListingModal'
 
 interface Listing {
   id: string
@@ -21,6 +23,7 @@ export default function Dashboard() {
   const [loadingListings, setLoadingListings] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [editingListingId, setEditingListingId] = useState<string | null>(null)
 
   const displayName = user?.user_metadata?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
 
@@ -64,6 +67,14 @@ export default function Dashboard() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     navigate('/login', { replace: true })
+  }
+
+  function handleListingSaved(updated: SavedListingData) {
+    setListings(prev => prev.map(l =>
+      l.id === updated.id
+        ? { ...l, address: updated.address, price: updated.price, bedrooms: updated.bedrooms, bathrooms: updated.bathrooms, property_type: updated.property_type, image_url: updated.image_url }
+        : l
+    ))
   }
 
   return (
@@ -138,12 +149,21 @@ export default function Dashboard() {
         ) : (
           <div className="card-grid">
             {listings.map(listing => (
-              <ListingCard key={listing.id} listing={listing} />
+              <ListingCard key={listing.id} listing={listing} onEdit={() => setEditingListingId(listing.id)} />
             ))}
           </div>
         )}
 
       </div>
+
+      {/* Edit modal */}
+      {editingListingId && (
+        <EditListingModal
+          listingId={editingListingId}
+          onClose={() => setEditingListingId(null)}
+          onSaved={updated => { handleListingSaved(updated); setEditingListingId(null) }}
+        />
+      )}
     </div>
   )
 }
@@ -177,7 +197,7 @@ function EmptyState({ creditsLeft }: { creditsLeft: number }) {
 
 // ─── Listing card ────────────────────────────────────────────────────────────
 
-function ListingCard({ listing }: { listing: Listing }) {
+function ListingCard({ listing, onEdit }: { listing: Listing; onEdit: () => void }) {
   function formatPrice(price: number) {
     return '$' + price.toLocaleString()
   }
@@ -188,13 +208,18 @@ function ListingCard({ listing }: { listing: Listing }) {
   return (
     <div style={c.card}>
       {/* Image */}
-      {listing.image_url ? (
-        <img src={listing.image_url} alt={listing.address} style={c.image} />
-      ) : (
-        <div style={c.imagePlaceholder}>
-          <span style={c.placeholderIcon}>🏡</span>
-        </div>
-      )}
+      <div style={c.imageWrap}>
+        {listing.image_url ? (
+          <img src={listing.image_url} alt={listing.address} style={c.image} />
+        ) : (
+          <div style={c.imagePlaceholder}>
+            <span style={c.placeholderIcon}>🏡</span>
+          </div>
+        )}
+        <button style={c.editIconBtn} onClick={e => { e.preventDefault(); onEdit() }} title="Edit listing">
+          ✎
+        </button>
+      </div>
 
       {/* Body */}
       <div style={c.body}>
@@ -476,11 +501,33 @@ const c: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
   },
+  imageWrap: {
+    position: 'relative' as const,
+  },
   image: {
     width: '100%',
     height: '180px',
     objectFit: 'cover',
     display: 'block',
+  },
+  editIconBtn: {
+    position: 'absolute' as const,
+    top: '8px',
+    right: '8px',
+    width: '30px',
+    height: '30px',
+    borderRadius: '6px',
+    background: 'rgba(0,0,0,0.6)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    color: '#f3f4f6',
+    fontSize: '14px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backdropFilter: 'blur(4px)',
+    fontFamily: 'inherit',
+    lineHeight: 1,
   },
   imagePlaceholder: {
     width: '100%',
