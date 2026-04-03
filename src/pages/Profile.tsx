@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
 interface ProfileData {
   full_name: string | null
+  avatar_url: string | null
   created_at: string
 }
 
@@ -15,12 +18,18 @@ export default function Profile() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
 
-  // Edit state
+  // Name edit
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
   const [savedOk, setSavedOk] = useState(false)
+
+  // Avatar
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [avatarHover, setAvatarHover] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     document.title = 'ListingIgnite — Account'
@@ -28,40 +37,37 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return
-
     async function fetchProfile() {
       const { data } = await supabase
         .from('profiles')
-        .select('full_name, created_at')
+        .select('full_name, avatar_url, created_at')
         .eq('id', user!.id)
         .single()
       setProfile(data ?? null)
       setLoadingProfile(false)
     }
-
     fetchProfile()
   }, [user])
 
+  // ── Name editing ─────────────────────────────────────────────────────────
+
   function startEditName() {
     setNameInput(profile?.full_name ?? '')
-    setSaveError(null)
+    setNameError(null)
     setEditingName(true)
   }
 
   function cancelEditName() {
     setEditingName(false)
-    setSaveError(null)
+    setNameError(null)
   }
 
   async function saveName() {
     if (!user) return
     const trimmed = nameInput.trim()
-    if (!trimmed) {
-      setSaveError('Name cannot be blank.')
-      return
-    }
-    setSaving(true)
-    setSaveError(null)
+    if (!trimmed) { setNameError('Name cannot be blank.'); return }
+    setNameSaving(true)
+    setNameError(null)
     try {
       const { error } = await supabase
         .from('profiles')
@@ -73,11 +79,69 @@ export default function Profile() {
       setSavedOk(true)
       setTimeout(() => setSavedOk(false), 3000)
     } catch {
-      setSaveError('Failed to save. Please try again.')
+      setNameError('Failed to save. Please try again.')
     } finally {
-      setSaving(false)
+      setNameSaving(false)
     }
   }
+
+  // ── Avatar upload ─────────────────────────────────────────────────────────
+
+  async function handleAvatarFile(file: File) {
+    if (!user) return
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setAvatarError('Please select a JPG, PNG, or WEBP image.')
+      return
+    }
+    setAvatarUploading(true)
+    setAvatarError(null)
+    try {
+      const ext = file.name.split('.').pop()
+      // Timestamp in path ensures a fresh URL on every upload (avoids browser caching)
+      const storagePath = `${user.id}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(storagePath, file)
+      if (uploadError) throw new Error(uploadError.message)
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(storagePath)
+
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id)
+      if (dbError) throw new Error(dbError.message)
+
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev)
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+    } finally {
+      setAvatarUploading(false)
+      if (avatarInputRef.current) avatarInputRef.current.value = ''
+    }
+  }
+
+  async function removeAvatar() {
+    if (!user) return
+    setAvatarUploading(true)
+    setAvatarError(null)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id)
+      if (error) throw error
+      setProfile(prev => prev ? { ...prev, avatar_url: null } : prev)
+    } catch {
+      setAvatarError('Failed to remove photo. Please try again.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  // ── Misc ─────────────────────────────────────────────────────────────────
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -96,6 +160,10 @@ export default function Profile() {
     return user?.email?.[0].toUpperCase() ?? '?'
   })()
 
+  const avatarUrl = profile?.avatar_url ?? null
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   return (
     <div style={s.page}>
       <div style={s.container}>
@@ -109,9 +177,52 @@ export default function Profile() {
           <Link to="/dashboard" style={s.backLink}>← Dashboard</Link>
         </div>
 
-        {/* Page header */}
+        {/* Page header with avatar upload */}
         <div style={s.pageHeader}>
-          <div style={s.avatarLg}>{initials}</div>
+          <div style={s.avatarWrap}>
+            {/* Clickable avatar circle */}
+            <div
+              style={s.avatarCircle}
+              onClick={() => !avatarUploading && avatarInputRef.current?.click()}
+              onMouseEnter={() => setAvatarHover(true)}
+              onMouseLeave={() => setAvatarHover(false)}
+              title="Click to upload a photo"
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" style={s.avatarImg} />
+              ) : (
+                <span style={s.avatarInitials}>{initials}</span>
+              )}
+
+              {/* Hover / uploading overlay */}
+              {(avatarHover || avatarUploading) && (
+                <div style={s.avatarOverlay}>
+                  {avatarUploading
+                    ? <span style={s.avatarOverlayText}>…</span>
+                    : <span style={s.avatarOverlayText}>📷</span>
+                  }
+                </div>
+              )}
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarFile(f) }}
+            />
+
+            {/* Remove link — only shown when avatar exists */}
+            {avatarUrl && !avatarUploading && (
+              <button style={s.removeAvatarBtn} onClick={removeAvatar}>
+                Remove photo
+              </button>
+            )}
+            {avatarError && <p style={s.avatarError}>{avatarError}</p>}
+          </div>
+
           <div>
             <h1 style={s.heading}>Account Settings</h1>
             <p style={s.subheading}>Manage your profile and subscription.</p>
@@ -149,16 +260,16 @@ export default function Profile() {
                         autoFocus
                         placeholder="Your full name"
                       />
-                      {saveError && <p style={s.fieldError}>{saveError}</p>}
+                      {nameError && <p style={s.fieldError}>{nameError}</p>}
                       <div style={s.inlineActions}>
                         <button
-                          style={saving ? { ...s.saveBtn, ...s.saveBtnDisabled } : s.saveBtn}
+                          style={nameSaving ? { ...s.saveBtn, ...s.saveBtnDisabled } : s.saveBtn}
                           onClick={saveName}
-                          disabled={saving}
+                          disabled={nameSaving}
                         >
-                          {saving ? 'Saving…' : 'Save'}
+                          {nameSaving ? 'Saving…' : 'Save'}
                         </button>
-                        <button style={s.cancelBtn} onClick={cancelEditName} disabled={saving}>
+                        <button style={s.cancelBtn} onClick={cancelEditName} disabled={nameSaving}>
                           Cancel
                         </button>
                       </div>
@@ -233,9 +344,7 @@ export default function Profile() {
               <div style={s.row}>
                 <div style={s.rowLabel}>Current Plan</div>
                 <div style={s.rowValue}>
-                  <div style={s.rowValueRow}>
-                    <span style={s.planBadge}>Free Trial</span>
-                  </div>
+                  <span style={s.planBadge}>Free Trial</span>
                 </div>
               </div>
 
@@ -275,9 +384,7 @@ export default function Profile() {
                   <p style={s.rowHint}>You can sign back in anytime with your Google account.</p>
                 </div>
                 <div style={s.rowValue}>
-                  <button style={s.signOutBtn} onClick={handleSignOut}>
-                    Sign Out
-                  </button>
+                  <button style={s.signOutBtn} onClick={handleSignOut}>Sign Out</button>
                 </div>
               </div>
             </section>
@@ -329,23 +436,78 @@ const s: Record<string, React.CSSProperties> = {
   pageHeader: {
     display: 'flex',
     alignItems: 'center',
-    gap: '20px',
+    gap: '24px',
     marginBottom: '32px',
   },
-  avatarLg: {
-    width: '56px',
-    height: '56px',
+
+  // Avatar upload area
+  avatarWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    flexShrink: 0,
+  },
+  avatarCircle: {
+    width: '80px',
+    height: '80px',
     borderRadius: '50%',
     background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '20px',
+    cursor: 'pointer',
+    position: 'relative',
+    overflow: 'hidden',
+    border: '2px solid #3a3a4a',
+    flexShrink: 0,
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  avatarInitials: {
+    fontSize: '26px',
     fontWeight: '700',
     color: '#fff',
-    flexShrink: 0,
     letterSpacing: '-0.5px',
+    userSelect: 'none',
   },
+  avatarOverlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+  },
+  avatarOverlayText: {
+    fontSize: '20px',
+    lineHeight: 1,
+  },
+  removeAvatarBtn: {
+    padding: '0',
+    background: 'none',
+    border: 'none',
+    color: '#6b7280',
+    fontSize: '11px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    textDecoration: 'underline',
+    textUnderlineOffset: '2px',
+  },
+  avatarError: {
+    fontSize: '11px',
+    color: '#fca5a5',
+    margin: 0,
+    textAlign: 'center',
+    maxWidth: '80px',
+  },
+
   heading: {
     fontSize: '24px',
     fontWeight: '700',
@@ -414,19 +576,9 @@ const s: Record<string, React.CSSProperties> = {
     flexShrink: 0,
     paddingTop: '2px',
   },
-  rowHint: {
-    fontSize: '12px',
-    color: '#6b7280',
-    margin: '4px 0 0',
-    fontWeight: '400',
-  },
+  rowHint: { fontSize: '12px', color: '#6b7280', margin: '4px 0 0', fontWeight: '400' },
   rowValue: { flex: 1, minWidth: 0 },
-  rowValueRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    flexWrap: 'wrap',
-  },
+  rowValueRow: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' },
   valueText: { fontSize: '14px', color: '#f3f4f6' },
   valueMuted: { color: '#4b5563', fontStyle: 'italic' },
   readOnlyTag: {
@@ -439,12 +591,7 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: '20px',
     letterSpacing: '0.2px',
   },
-
-  divider: {
-    height: '1px',
-    background: '#2e2e3a',
-    margin: '0 24px',
-  },
+  divider: { height: '1px', background: '#2e2e3a', margin: '0 24px' },
 
   // Inline name edit
   inlineEdit: { width: '100%' },
@@ -519,20 +666,9 @@ const s: Record<string, React.CSSProperties> = {
     background: 'rgba(239, 68, 68, 0.08)',
     border: '1px solid rgba(239, 68, 68, 0.25)',
   },
-  creditNumber: {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: '#c084fc',
-    letterSpacing: '-0.3px',
-  },
+  creditNumber: { fontSize: '18px', fontWeight: '700', color: '#c084fc', letterSpacing: '-0.3px' },
   creditLabel: { fontSize: '13px', color: '#9ca3af' },
-  creditNote: {
-    fontSize: '13px',
-    color: '#9ca3af',
-    margin: '0',
-    padding: '14px 24px',
-    lineHeight: '1.55',
-  },
+  creditNote: { fontSize: '13px', color: '#9ca3af', margin: '0', padding: '14px 24px', lineHeight: '1.55' },
 
   // Subscription
   planBadge: {
@@ -546,17 +682,8 @@ const s: Record<string, React.CSSProperties> = {
     color: '#c084fc',
     letterSpacing: '0.2px',
   },
-  featureList: {
-    margin: 0,
-    padding: '0 0 0 16px',
-    listStyle: 'disc',
-  },
-  featureItem: {
-    fontSize: '14px',
-    color: '#9ca3af',
-    marginBottom: '4px',
-    lineHeight: '1.5',
-  },
+  featureList: { margin: 0, padding: '0 0 0 16px', listStyle: 'disc' },
+  featureItem: { fontSize: '14px', color: '#9ca3af', marginBottom: '4px', lineHeight: '1.5' },
   upgradeRow: {
     display: 'flex',
     alignItems: 'center',
@@ -565,12 +692,7 @@ const s: Record<string, React.CSSProperties> = {
     gap: '16px',
     flexWrap: 'wrap',
   },
-  upgradeTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#d1d5db',
-    margin: '0 0 3px',
-  },
+  upgradeTitle: { fontSize: '14px', fontWeight: '600', color: '#d1d5db', margin: '0 0 3px' },
   upgradeSubtitle: { fontSize: '13px', color: '#6b7280', margin: 0 },
   upgradeBtn: {
     padding: '10px 20px',
@@ -587,13 +709,8 @@ const s: Record<string, React.CSSProperties> = {
   },
 
   // Danger zone
-  dangerCard: {
-    border: '1px solid rgba(239, 68, 68, 0.2)',
-  },
-  dangerTitle: {
-    color: '#ef4444',
-    borderBottom: '1px solid rgba(239, 68, 68, 0.15)',
-  },
+  dangerCard: { border: '1px solid rgba(239, 68, 68, 0.2)' },
+  dangerTitle: { color: '#ef4444', borderBottom: '1px solid rgba(239, 68, 68, 0.15)' },
   signOutBtn: {
     padding: '9px 20px',
     background: 'transparent',

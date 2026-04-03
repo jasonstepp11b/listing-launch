@@ -20,12 +20,23 @@ export default function Dashboard() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loadingListings, setLoadingListings] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   const displayName = user?.user_metadata?.full_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? 'there'
 
   useEffect(() => {
     document.title = 'ListingIgnite — Dashboard'
   }, [])
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => setAvatarUrl(data?.avatar_url ?? null))
+  }, [user])
 
   useEffect(() => {
     if (!user) return
@@ -72,13 +83,17 @@ export default function Dashboard() {
               </div>
             )}
             <Link to="/profile" style={s.avatarLink} title="Account settings">
-              {(() => {
-                const name = user?.user_metadata?.full_name ?? ''
-                const parts = name.trim().split(' ').filter(Boolean)
-                if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-                if (parts.length === 1) return parts[0][0].toUpperCase()
-                return user?.email?.[0].toUpperCase() ?? '?'
-              })()}
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" style={s.avatarImg} />
+              ) : (
+                (() => {
+                  const name = user?.user_metadata?.full_name ?? ''
+                  const parts = name.trim().split(' ').filter(Boolean)
+                  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                  if (parts.length === 1) return parts[0][0].toUpperCase()
+                  return user?.email?.[0].toUpperCase() ?? '?'
+                })()
+              )}
             </Link>
             <button style={s.signOutBtn} onClick={handleSignOut}>Sign Out</button>
           </div>
@@ -275,6 +290,13 @@ const s: Record<string, React.CSSProperties> = {
     textDecoration: 'none',
     flexShrink: 0,
     letterSpacing: '-0.3px',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
   },
   signOutBtn: {
     padding: '7px 16px',
