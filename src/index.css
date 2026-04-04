@@ -108,6 +108,19 @@ body {
   .form-section-pad { padding: 20px 16px; }
 }
 
+/* Responsive grids for Landing page */
+@media (max-width: 860px) {
+  .landing-feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .landing-steps-row    { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 560px) {
+  .landing-feature-grid { grid-template-columns: 1fr !important; }
+  .landing-hero-headline { font-size: 42px !important; letter-spacing: -1px !important; }
+  .landing-section-headline { font-size: 30px !important; }
+  .landing-problem-card { padding: 36px 24px !important; }
+  .landing-cta-headline { font-size: 28px !important; }
+}
+
 /* Responsive card grid used by Dashboard */
 .card-grid {
   display: grid;
