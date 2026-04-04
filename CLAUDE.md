@@ -17,7 +17,10 @@ This app eliminates that entirely.
 | Frontend | Vite + React + TypeScript |
 | Auth & Database | Supabase (OAuth via Google, PostgreSQL) |
 | AI Generation | Anthropic API (Claude) |
-| Hosting | TBD |
+| Email | Resend (via Supabase Edge Function) |
+| Hosting | Vercel |
+| Domain | listingignite.com (registered via Spaceship) |
+| Business Email | Zoho Mail (jason@listingignite.com) |
 
 ---
 
@@ -93,7 +96,7 @@ Extends Supabase auth.users.
 - `target_buyer` (text)
 - `additional_notes` (text)
 - `image_url` (text, nullable) — public Supabase Storage URL, stored under `{userId}/{listingId}/{timestamp}-{filename}`
-- `status` (text, default: `active`) — one of: `active`, `sold`, `inactive` (see Listing Status section below)
+- `status` (text, default: `active`) — one of: `active`, `sold`, `inactive`
 - `created_at` (timestamp)
 
 ### `generated_outputs`
@@ -138,6 +141,59 @@ Extends Supabase auth.users.
 - On first login, a `profiles` row is auto-created with `credits_remaining = 3`
 - Session is managed by Supabase client — no custom JWT handling needed
 - Protected routes redirect unauthenticated users to the login page
+- Supabase redirect URLs must include both the Vercel preview URL and the production domain (`https://listingignite.com`)
+
+---
+
+## Email Infrastructure
+
+- **Provider:** Resend (resend.com)
+- **Domain:** listingignite.com — verified in Resend via DNS records
+- **Sending address:** jason@listingignite.com
+- **API key:** stored as a Supabase Edge Function secret (`RESEND_API_KEY`) — never exposed client-side
+- **Edge Function:** `supabase/functions/send-email/index.ts` — accepts POST with `{ to, subject, html, replyTo? }` and sends via Resend
+- **Frontend helper:** `src/lib/edgeFunction.ts` — `callEdgeFunction(name, payload)` utility for calling any Edge Function with auth headers
+- **Note:** Resend account was suspended on signup for verification — responded to their support email with use case details. Await reactivation before testing email sending.
+
+---
+
+## Supabase Edge Functions
+
+Edge Functions are server-side Deno functions that run on Supabase's infrastructure. They are used to keep secrets off the client side.
+
+**Current Edge Functions:**
+- `send-email` — sends email via Resend API
+
+**Planned Edge Functions (pre-public-launch):**
+- `generate-content` — migrate the Anthropic API call from client-side to server-side (see Security Notes)
+
+**Local development:**
+```bash
+# Serve functions locally
+supabase functions serve send-email --env-file supabase/.env.local
+
+# Deploy to production
+supabase functions deploy send-email --project-ref <your-project-ref>
+
+# Set secrets
+supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
+```
+
+---
+
+## Environment Variables
+
+### Frontend (Vercel + local `.env.local`)
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous/public key |
+| `VITE_ANTHROPIC_API_KEY` | Anthropic API key (client-side for now — see Security Notes) |
+
+### Supabase Edge Function Secrets
+| Secret | Description |
+|---|---|
+| `RESEND_API_KEY` | Resend API key for sending email |
 
 ---
 
@@ -148,8 +204,8 @@ Extends Supabase auth.users.
 - A loading state (with a progress indicator) is important — generation may take 5–15 seconds.
 - Saved listings should be accessible from a simple dashboard so agents can revisit past work.
 - **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
-- **No hard deletes.** Listings are never permanently deleted — they are marked as `sold` or `inactive` to preserve data integrity and credit history.
-- **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button). This keeps the two actions — viewing marketing content and editing listing details — feeling distinct and purposeful.
+- **No hard deletes.** Listings are never permanently deleted — they are marked as `sold` or `inactive` to preserve data integrity and prevent credit abuse disputes.
+- **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button).
 
 ---
 
@@ -157,25 +213,34 @@ Extends Supabase auth.users.
 
 ### `EditListingModal`
 - Located at `src/components/EditListingModal.tsx`
-- Reusable modal for editing listing details and replacing property images
+- Reusable modal for editing listing details, replacing property images, and managing listing status
 - Triggered from two places: the pencil icon on dashboard cards, and the "Edit Listing" button on the listing detail page
+- Status section appears at the top of the modal above all other fields
+- Status changes are staged (not saved until "Save Changes" is clicked) — no native browser confirm dialogs
 - On save, updates the `listings` table and handles image replacement via Supabase Storage
-- Uses timestamps in storage filenames to avoid browser caching issues (e.g. `{userId}/{listingId}/{timestamp}-{filename}`)
-- Parent components update their local state after a successful save so UI reflects changes immediately
+- Uses timestamps in storage filenames to avoid browser caching issues
 - Scrollable to handle all fields on smaller screens
 
 ### Dashboard Cards
 - 3 columns desktop, 2 columns tablet, 1 column mobile
 - Each card shows: property image (or placeholder), address, price, property type, beds/baths, date generated
 - Two actions per card: "View Marketing Content →" (navigates to listing detail) and a pencil icon (opens EditListingModal)
-- Dashboard only shows `active` listings by default — sold/inactive listings are accessible via a separate filter or tab
+- Dashboard shows `active` listings by default — filter tabs for Active / Sold / Inactive
+- Sold cards show a 🎉 badge, Inactive cards show a subtle "Inactive" badge
+
+### Listing Detail Page
+- Hero section shows property image, address, price, beds/baths/sqft, features, and a read-only status badge
+- Status badge is color coded: green (Active), gold (Sold), grey (Inactive)
+- "Edit Listing" button in hero section opens EditListingModal
+- Marketing content tabs below the hero section
 
 ---
 
 ## Security Notes
 
-- The Anthropic API key is currently exposed on the client side via `VITE_ANTHROPIC_API_KEY`. This is acceptable for MVP/local development only.
-- Before any public launch, the Anthropic API call must be moved to a server-side function (e.g. Supabase Edge Function) to protect the API key.
+- The Anthropic API key is currently exposed on the client side via `VITE_ANTHROPIC_API_KEY`. This is acceptable for private demo use only.
+- **Before any public launch**, the Anthropic API call must be moved to a Supabase Edge Function (`generate-content`) to protect the API key. This is Step C3 in the build plan.
+- The Resend API key is already correctly stored server-side as a Supabase secret — never exposed to the client.
 
 ---
 
@@ -186,55 +251,30 @@ Extends Supabase auth.users.
 - Direct social media posting (API integrations)
 - Team accounts or agency plans
 - Custom branding per agent
-- Email delivery (SMTP / SendGrid)
 - Mobile app
 - Agent writing style personalization (see Future Roadmap below)
 - Projects concept / multi-campaign per property (see Future Roadmap below)
-- Listing status management / sold & inactive listings (see Future Roadmap below)
 
 ---
 
 ## Future Roadmap (Post-MVP)
 
-### 🏷️ Listing Status — Sold & Inactive
-**Priority: Medium — build after core MVP is validated with real users**
+### 🔒 Anthropic API Key Migration to Edge Function
+**Priority: Critical — must complete before public launch**
 
-Agents need a way to mark listings as no longer active without permanently deleting them. Hard deletes are intentionally avoided to preserve data integrity and prevent credit abuse disputes.
-
-**Three statuses:**
-- `active` — default, shows on the main dashboard
-- `sold` — property successfully sold 🎉, hidden from active dashboard, shown in a "Sold" history view
-- `inactive` — listing withdrawn, expired, or paused for other reasons, hidden from active dashboard, shown in an "Inactive" view
-
-**Implementation:**
-- Add a `status` column (text, default: `active`) to the `listings` table
-- On the listing detail page, add a "Mark as Sold" button and a "Mark as Inactive" button in a clearly separated section (e.g. below the marketing content, labeled "Listing Status")
-- The dashboard filters to `status = active` by default
-- Add a filter or secondary tab on the dashboard to view Sold and Inactive listings separately
-- Sold listings could display a celebratory "🎉 Sold!" badge on their card
-- Status changes are always reversible — agents can reactivate a listing if needed (e.g. a deal falls through)
-- Status changes never affect credits
-
-**Why no hard delete:**
-Agents may forget they generated content, then claim they were charged incorrectly. Keeping all listings in the database with a status field gives us a clear audit trail to resolve any disputes.
-
-**Trigger to build:** When agents start asking "how do I remove a listing from my dashboard?"
+Move the `generateContent.ts` Anthropic API call from the client side to a Supabase Edge Function called `generate-content`. This prevents the API key from being visible in the browser and protects against unauthorized usage and cost exposure.
 
 ---
 
 ### ✍️ Agent Writing Style Personalization
 **Priority: High — build after core MVP is validated**
 
-Allow agents to upload a PDF or document containing examples of their past posts, videos, emails, or any written content. The AI will use this as a style reference to generate marketing copy that sounds like the agent — not generic AI.
+Allow agents to upload a PDF containing examples of their past writing. The AI uses this as a style reference to generate copy that sounds like the agent, not generic AI.
 
 Suggested implementation:
-- Agent creates a Google Doc with examples of their writing (posts, emails, video scripts they've published)
-- Exports it as a PDF and uploads it to ListingIgnite
-- PDF is stored in Supabase Storage, linked to their profile
-- On generation, the PDF text is extracted and injected into the Anthropic prompt as a style guide
-- The prompt instructs Claude to match the agent's tone, vocabulary, and voice
-
-Why this matters: Agents have distinct personal brands. Their audience follows *them*, not just the property. Content that sounds like the agent is significantly more valuable than generic AI copy — and could justify a premium credit tier.
+- Agent exports a Google Doc of their writing samples as PDF
+- PDF stored in Supabase Storage, linked to their profile
+- On generation, PDF text is extracted and injected into the Anthropic prompt as a style guide
 
 **Trigger to build:** When users say "I love it, but it doesn't sound like me."
 
@@ -243,29 +283,24 @@ Why this matters: Agents have distinct personal brands. Their audience follows *
 ### 📁 Projects — Multi-Campaign Per Property
 **Priority: High — major product evolution**
 
-Right now, one listing = one set of marketing content. The Projects concept reframes this into a much more powerful model:
+One property = a living project with multiple marketing campaigns over its lifetime.
 
-> One property = a living project with multiple marketing campaigns over its lifetime
+**Example campaign types:** New Listing, Price Drop, Open House, Back on Market, Just Sold
 
-Instead of "listings," agents would create a **Project** for each property. Within that project, they can run multiple **campaigns** depending on where they are in the sales cycle. Each campaign generates a fresh full set of marketing content tailored to that moment.
+**Data model changes needed:**
+- New `projects` table (one per property) with shared property details and image
+- Existing `listings` table becomes `campaigns` — linked to a project with a `campaign_type` field
+- Dashboard shows projects as top-level cards, campaigns nested inside
+- Credits consumed per campaign generation
 
-**Example campaign types:**
-- **New Listing** — full launch copy, all 6 outputs, maximum excitement
-- **Price Drop** — urgency-focused copy highlighting the new value opportunity
-- **Open House** — event-driven copy with date/time details and a strong CTA to attend
-- **Back on Market** — copy addressing the return with a positive spin
-- **Just Sold** — social proof content for the agent's brand
+**Trigger to build:** After MVP is validated with real users.
 
-**Why this matters:**
-Agents work with a property for weeks or months. Every milestone is a new marketing moment. This turns ListingIgnite from a one-time tool into an indispensable part of their entire listing workflow — dramatically increasing retention and credit consumption.
+---
 
-**What needs to change in the data model:**
-- Introduce a `projects` table (one per property) containing the shared property details and image
-- The existing `listings` table effectively becomes `campaigns` — linked to a project, with a `campaign_type` field
-- The dashboard would show projects as the top-level cards, with campaigns nested inside each project
-- Credits are consumed per campaign generation, not per project
+### 💳 Stripe Billing & Subscription Tiers
+**Priority: High — required for revenue**
 
-**Trigger to build:** After the MVP is validated with real users and the core loop is proven.
+Wire up Stripe for credit purchases and subscription plans. Stripe webhooks update `credits_remaining` in Supabase on successful payment.
 
 ---
 
@@ -274,19 +309,26 @@ Agents work with a property for weeks or months. Every milestone is a new market
 - [x] Project scaffolded (Vite + React + TS)
 - [x] Supabase project created & env vars configured
 - [x] Supabase Google OAuth enabled
-- [x] Database schema applied
-- [x] Auth flow implemented
-- [x] Listing input form built
-- [x] Anthropic API integration complete
-- [x] Output UI (tabs + copy buttons) built
-- [x] Listings saved to Supabase
-- [x] Credit tracking implemented
+- [x] Database schema applied (profiles, listings, generated_outputs)
+- [x] Auth flow implemented (Google OAuth, protected routes, auth context)
+- [x] Listing input form built (hybrid structured + freeform)
+- [x] Anthropic API integration complete (single call, all 6 outputs)
+- [x] Output UI (tabs + copy buttons + loading state)
+- [x] Listings and outputs saved to Supabase
+- [x] Credit tracking implemented (deduct on success, block at 0)
 - [x] Paywall placeholder built
 - [x] Step 10 polish & UX pass complete
-- [x] Property image upload (Supabase Storage)
-- [x] Dashboard card grid redesign with listing detail page
-- [x] Step A2a — image upload on existing listings + edit listing details
-- [x] Step B — Profile / Account page with avatar upload
-- [ ] Step A2b — EditListingModal refactor (reusable modal from dashboard + detail page)
-- [ ] Step C — Landing page
-- [ ] MVP deployed
+- [x] Property image upload (Supabase Storage, property-images bucket)
+- [x] Dashboard card grid redesign (3 col, image cards, listing detail page)
+- [x] Edit listing details + image replacement (EditListingModal)
+- [x] Profile / Account page with avatar upload
+- [x] Listing status management (Active / Sold / Inactive via EditListingModal)
+- [x] Supabase Edge Function foundation (send-email function + frontend helper)
+- [x] Resend account created, domain verified, API key set in Supabase secrets
+- [x] Vercel deployment config (vercel.json, gitignore audit, env var checklist)
+- [ ] Resend account reactivation (pending response from Resend support)
+- [ ] Feedback form UI (Step C2 — blocked until Resend reactivated)
+- [ ] Anthropic API key migrated to Edge Function (Step C3 — before public launch)
+- [ ] Landing page (Step C4)
+- [ ] Deploy to Vercel + connect custom domain (Step D)
+- [ ] End-to-end test on production URL
