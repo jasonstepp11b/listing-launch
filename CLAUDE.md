@@ -141,7 +141,8 @@ Extends Supabase auth.users.
 - On first login, a `profiles` row is auto-created with `credits_remaining = 3`
 - Session is managed by Supabase client — no custom JWT handling needed
 - Protected routes redirect unauthenticated users to the login page
-- Supabase redirect URLs must include both the Vercel preview URL and the production domain (`https://listingignite.com`)
+- Supabase redirect URLs include both `https://listingignite.com` and `http://localhost:5173`
+- Google Cloud OAuth authorized redirect URIs include the Supabase callback URL, `https://listingignite.com`, and `https://www.listingignite.com`
 
 ---
 
@@ -153,7 +154,8 @@ Extends Supabase auth.users.
 - **API key:** stored as a Supabase Edge Function secret (`RESEND_API_KEY`) — never exposed client-side
 - **Edge Function:** `supabase/functions/send-email/index.ts` — accepts POST with `{ to, subject, html, replyTo? }` and sends via Resend
 - **Frontend helper:** `src/lib/edgeFunction.ts` — `callEdgeFunction(name, payload)` utility for calling any Edge Function with auth headers
-- **Note:** Resend account was suspended on signup for verification — responded to their support email with use case details. Await reactivation before testing email sending.
+- **Planned email types:** feedback notifications to jason@listingignite.com, transactional emails to users, and marketing/product update emails to opted-in users and leads
+- **Status:** Resend account suspended on signup — reactivation request submitted with full use case details. Awaiting response.
 
 ---
 
@@ -200,12 +202,13 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
 ## Key UX Principles
 
 - **Output presentation is the product.** Generated content must look polished and trustworthy.
-- Tabs should be clearly labeled, content should be well-formatted, and copy buttons must be prominent.
+- Tabs should be clearly labeled, content should be well-formatted, and readable.
 - A loading state (with a progress indicator) is important — generation may take 5–15 seconds.
 - Saved listings should be accessible from a simple dashboard so agents can revisit past work.
 - **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
 - **No hard deletes.** Listings are never permanently deleted — they are marked as `sold` or `inactive` to preserve data integrity and prevent credit abuse disputes.
 - **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button).
+- **No copy buttons.** Copy buttons were removed due to inconsistent clipboard behavior. Users are guided to manually highlight and copy text directly from the UI, which works reliably across all apps and platforms.
 
 ---
 
@@ -233,6 +236,14 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
 - Status badge is color coded: green (Active), gold (Sold), grey (Inactive)
 - "Edit Listing" button in hero section opens EditListingModal
 - Marketing content tabs below the hero section
+- No copy buttons — helper tip text guides users to manually highlight and copy
+
+### Landing Page (`src/pages/Landing.tsx`)
+- Route: `/` for unauthenticated users
+- Authenticated users visiting `/` are redirected to `/dashboard`
+- Sections: Nav, Hero, Problem, Features (6 output types), How It Works (3 steps), CTA, Footer
+- Matches dark premium aesthetic of the app with purple accents
+- Fully responsive (mobile, tablet, desktop)
 
 ---
 
@@ -240,7 +251,8 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
 
 - The Anthropic API key is currently exposed on the client side via `VITE_ANTHROPIC_API_KEY`. This is acceptable for private demo use only.
 - **Before any public launch**, the Anthropic API call must be moved to a Supabase Edge Function (`generate-content`) to protect the API key. This is Step C3 in the build plan.
-- The Resend API key is already correctly stored server-side as a Supabase secret — never exposed to the client.
+- The Resend API key is correctly stored server-side as a Supabase secret — never exposed to the client.
+- GitHub repository is currently public to work around Vercel Hobby plan deployment restrictions. Consider making private again once git identity is correctly configured (`git config --global user.email` must match the Vercel account email: `jason@listingignite.com`).
 
 ---
 
@@ -266,15 +278,17 @@ Move the `generateContent.ts` Anthropic API call from the client side to a Supab
 
 ---
 
+### 📧 Feedback Form
+**Priority: High — blocked until Resend account is reactivated**
+
+A "Share Feedback" button visible on all protected pages (bottom right corner). Opens a modal with a topic dropdown and message textarea. User name and email are pre-filled from their profile. Submits via the `send-email` Edge Function to jason@listingignite.com.
+
+---
+
 ### ✍️ Agent Writing Style Personalization
 **Priority: High — build after core MVP is validated**
 
 Allow agents to upload a PDF containing examples of their past writing. The AI uses this as a style reference to generate copy that sounds like the agent, not generic AI.
-
-Suggested implementation:
-- Agent exports a Google Doc of their writing samples as PDF
-- PDF stored in Supabase Storage, linked to their profile
-- On generation, PDF text is extracted and injected into the Anthropic prompt as a style guide
 
 **Trigger to build:** When users say "I love it, but it doesn't sound like me."
 
@@ -304,6 +318,13 @@ Wire up Stripe for credit purchases and subscription plans. Stripe webhooks upda
 
 ---
 
+### 👤 Admin Panel
+**Priority: Medium — build after feature set is stable**
+
+Internal tool for managing users, manually adjusting credits, viewing usage stats, and monitoring overall app health. Intentionally deferred until the feature set stops changing frequently.
+
+---
+
 ## Project Status
 
 - [x] Project scaffolded (Vite + React + TS)
@@ -313,22 +334,24 @@ Wire up Stripe for credit purchases and subscription plans. Stripe webhooks upda
 - [x] Auth flow implemented (Google OAuth, protected routes, auth context)
 - [x] Listing input form built (hybrid structured + freeform)
 - [x] Anthropic API integration complete (single call, all 6 outputs)
-- [x] Output UI (tabs + copy buttons + loading state)
+- [x] Output UI (tabs + loading state + manual copy helper text)
 - [x] Listings and outputs saved to Supabase
 - [x] Credit tracking implemented (deduct on success, block at 0)
 - [x] Paywall placeholder built
-- [x] Step 10 polish & UX pass complete
+- [x] Polish & UX pass complete
 - [x] Property image upload (Supabase Storage, property-images bucket)
 - [x] Dashboard card grid redesign (3 col, image cards, listing detail page)
 - [x] Edit listing details + image replacement (EditListingModal)
 - [x] Profile / Account page with avatar upload
 - [x] Listing status management (Active / Sold / Inactive via EditListingModal)
-- [x] Supabase Edge Function foundation (send-email function + frontend helper)
+- [x] Supabase Edge Function foundation (send-email + frontend helper)
 - [x] Resend account created, domain verified, API key set in Supabase secrets
-- [x] Vercel deployment config (vercel.json, gitignore audit, env var checklist)
-- [ ] Resend account reactivation (pending response from Resend support)
+- [x] Landing page live at listingignite.com (hero, features, how it works, CTA)
+- [x] Deployed to Vercel + custom domain connected (listingignite.com)
+- [x] Google OAuth and Supabase redirect URLs updated for production
+- [x] Session persistence fixed (survives browser close)
+- [x] Resend reactivation request submitted
+- [ ] Resend account reactivated (pending)
 - [ ] Feedback form UI (Step C2 — blocked until Resend reactivated)
 - [ ] Anthropic API key migrated to Edge Function (Step C3 — before public launch)
-- [ ] Landing page (Step C4)
-- [ ] Deploy to Vercel + connect custom domain (Step D)
-- [ ] End-to-end test on production URL
+- [ ] Make GitHub repo private again (after fixing git identity config)
