@@ -190,7 +190,6 @@ export default function Dashboard() {
                 key={listing.id}
                 listing={listing}
                 onEdit={() => setEditingListingId(listing.id)}
-                onStatusChanged={handleStatusChanged}
               />
             ))}
           </div>
@@ -243,11 +242,9 @@ function EmptyState({ creditsLeft }: { creditsLeft: number }) {
 function ListingCard({
   listing,
   onEdit,
-  onStatusChanged,
 }: {
   listing: Listing
   onEdit: () => void
-  onStatusChanged: (id: string, status: 'active' | 'sold' | 'inactive') => void
 }) {
   function formatPrice(price: number) {
     return '$' + price.toLocaleString()

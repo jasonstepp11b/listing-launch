@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git -C /Users/jason/code/listing-launch stash list)",
+      "Bash(git -C /Users/jason/code/listing-launch show HEAD:.env.local)",
+      "Bash(git -C /Users/jason/code/listing-launch check-ignore -v .env .env.production .env.local .env.staging)"
     ]
   }
 }
