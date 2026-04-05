@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { GeneratedOutputs } from '../lib/generateContent'
 
 interface Props {
@@ -45,8 +45,6 @@ export default function GeneratedOutput({ outputs, noTopMargin }: Props) {
 
       {/* Tab content */}
       <div className="output-body">
-
-        <p style={s.selectTip}>✦ Highlight any text below to copy it into your marketing tools.</p>
 
         {activeTab === 'mls' && (
           <Section
@@ -113,20 +111,72 @@ export default function GeneratedOutput({ outputs, noTopMargin }: Props) {
   )
 }
 
+// ─── Section ─────────────────────────────────────────────────────────────────
+
+type CopyState = 'idle' | 'copied' | 'fallback'
+
 interface SectionProps {
   title: string
   hint: string
   content: string
 }
 
+function normalize(text: string): string {
+  return text
+    .replace(/\u202F/g, ' ')   // narrow no-break space
+    .replace(/\u00A0/g, ' ')   // non-breaking space
+    .replace(/\u2009/g, ' ')   // thin space
+    .replace(/\u2008/g, ' ')   // punctuation space
+    .replace(/\r\n/g, '\n')    // unify line endings first
+    .replace(/\n/g, '\r\n')    // then normalize to CRLF for Windows compat
+}
+
 function Section({ title, hint, content }: SectionProps) {
+  const [copyState, setCopyState] = useState<CopyState>('idle')
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(normalize(content))
+      setCopyState('copied')
+      setTimeout(() => setCopyState('idle'), 2000)
+    } catch {
+      // Clipboard API unavailable — select the content so user can Cmd+C / Ctrl+C
+      if (contentRef.current) {
+        const selection = window.getSelection()
+        const range = document.createRange()
+        range.selectNodeContents(contentRef.current)
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+      }
+      setCopyState('fallback')
+      setTimeout(() => setCopyState('idle'), 4000)
+    }
+  }
+
   return (
     <div style={ss.section}>
       <div style={ss.sectionHeader}>
-        <h3 style={ss.title}>{title}</h3>
-        <p style={ss.hint}>{hint}</p>
+        <div>
+          <h3 style={ss.title}>{title}</h3>
+          <p style={ss.hint}>{hint}</p>
+        </div>
+        <button
+          style={copyState === 'copied' ? { ...ss.copyBtn, ...ss.copyBtnDone } : ss.copyBtn}
+          onClick={handleCopy}
+          type="button"
+        >
+          {copyState === 'copied' ? '✓ Copied!' : 'Copy'}
+        </button>
       </div>
-      <div style={ss.content}>
+
+      {copyState === 'fallback' && (
+        <p style={ss.fallbackMsg}>
+          Text selected — press <kbd style={ss.kbd}>Cmd+C</kbd> (Mac) or <kbd style={ss.kbd}>Ctrl+C</kbd> (Windows) to copy.
+        </p>
+      )}
+
+      <div ref={contentRef} style={ss.content}>
         {content.split('\n').flatMap((line, i, arr) =>
           i < arr.length - 1 ? [line, <br key={i} />] : [line]
         )}
@@ -134,6 +184,8 @@ function Section({ title, hint, content }: SectionProps) {
     </div>
   )
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s: Record<string, React.CSSProperties> = {
   wrapper: {
@@ -143,7 +195,7 @@ const s: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     marginTop: '40px',
   },
-  header: {},  // layout handled by .output-header CSS class
+  header: {},
   sparkle: {
     fontSize: '28px',
     color: '#a855f7',
@@ -161,7 +213,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#9ca3af',
     margin: 0,
   },
-  tabBar: {},  // layout handled by .output-tab-bar CSS class
+  tabBar: {},
   tab: {
     padding: '14px 18px',
     background: 'none',
@@ -179,14 +231,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#a855f7',
     borderBottomColor: '#a855f7',
   },
-  body: {},  // layout handled by .output-body CSS class
-  selectTip: {
-    fontSize: '14px',
-    color: '#a855f7',
-    margin: '0 0 20px',
-    fontStyle: 'italic',
-    fontWeight: '400',
-  },
+  body: {},
 }
 
 const ss: Record<string, React.CSSProperties> = {
@@ -197,6 +242,10 @@ const ss: Record<string, React.CSSProperties> = {
     textAlign: 'left',
   },
   sectionHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '16px',
     marginBottom: '12px',
   },
   title: {
@@ -211,6 +260,41 @@ const ss: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     color: '#6b7280',
     margin: 0,
+  },
+  copyBtn: {
+    flexShrink: 0,
+    padding: '6px 14px',
+    background: 'transparent',
+    border: '1px solid #3a3a4a',
+    borderRadius: '6px',
+    color: '#9ca3af',
+    fontSize: '12px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap',
+  },
+  copyBtnDone: {
+    borderColor: '#a855f7',
+    color: '#a855f7',
+    background: 'rgba(168, 85, 247, 0.08)',
+  },
+  fallbackMsg: {
+    fontSize: '12px',
+    color: '#fbbf24',
+    background: 'rgba(251, 191, 36, 0.08)',
+    border: '1px solid rgba(251, 191, 36, 0.2)',
+    borderRadius: '6px',
+    padding: '8px 12px',
+    margin: '0 0 10px',
+  },
+  kbd: {
+    fontFamily: 'monospace',
+    fontSize: '11px',
+    background: 'rgba(251, 191, 36, 0.15)',
+    border: '1px solid rgba(251, 191, 36, 0.3)',
+    borderRadius: '3px',
+    padding: '1px 5px',
   },
   content: {
     background: '#13131a',

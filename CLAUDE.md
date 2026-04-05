@@ -213,7 +213,7 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
 - **No hard deletes.** Listings are never permanently deleted — they are marked as `sold` or `inactive` to preserve data integrity and prevent credit abuse disputes.
 - **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button).
-- **No copy buttons.** Copy buttons were removed due to inconsistent clipboard behavior. Users are guided to manually highlight and copy text directly from the UI, which works reliably across all apps and platforms.
+- **Copy buttons.** Each output section has a "Copy" button that uses `navigator.clipboard.writeText()` with a `window.getSelection()` + `Range` fallback (for environments where clipboard API is unavailable). Content is normalized before copying: Unicode spaces stripped, line endings unified to CRLF. On success the button shows "✓ Copied!" for 2 seconds. On fallback, an amber message prompts the user to press Cmd+C / Ctrl+C.
 
 ---
 
@@ -241,7 +241,7 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - Status badge is color coded: green (Active), gold (Sold), grey (Inactive)
 - "Edit Listing" button in hero section opens EditListingModal
 - Marketing content tabs below the hero section
-- No copy buttons — helper tip text guides users to manually highlight and copy
+- Each output section has a Copy button with clipboard API + fallback selection
 
 ### Landing Page (`src/pages/Landing.tsx`)
 - Route: `/` for unauthenticated users
@@ -350,6 +350,6 @@ Internal tool for managing users, manually adjusting credits, viewing usage stat
 - [x] Google OAuth and Supabase redirect URLs updated for production
 - [x] Resend reactivation request submitted
 - [ ] Resend account reactivated (pending — submitted over Easter holiday weekend)
-- [ ] Step E — Email/password auth (non-Google login)
+- [x] Step E — Email/password auth (non-Google login)
 - [ ] Feedback form UI (blocked until Resend reactivated)
 - [ ] Make GitHub repo private again (fix git identity: jason@listingignite.com)
