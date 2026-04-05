@@ -28,7 +28,7 @@ This app eliminates that entirely.
 
 The MVP is intentionally tight. Ship these six things, nothing more:
 
-1. **Auth** — Supabase Google OAuth login
+1. **Auth** — Supabase Google OAuth login + email/password
 2. **Listing Input Form** — Hybrid approach: structured fields + optional freeform notes
 3. **AI Generation** — Anthropic API call producing all 6 output types in a single request
 4. **Output UI** — Tabbed layout per content type, polished presentation
@@ -61,7 +61,7 @@ Use a **hybrid approach**:
 
 All 6 outputs are generated in a **single Anthropic API call** from one structured prompt.
 The call is made server-side via the `generate-content` Supabase Edge Function.
-Outputs are displayed in a tabbed UI.
+Outputs are displayed in a tabbed UI with copy buttons.
 
 | Tab | Output |
 |---|---|
@@ -139,13 +139,15 @@ Extends Supabase auth.users.
 ## Auth Flow
 
 - **Primary provider:** Google OAuth via Supabase
-- **Planned:** Email/password auth (Step E) — to support users without Google accounts
+- **Secondary provider:** Email/password (with email confirmation enabled)
 - On first login, a `profiles` row is auto-created with `credits_remaining = 3`
 - Session is managed by Supabase client and persists across browser closes via localStorage
 - Protected routes redirect unauthenticated users to the login page
 - Authenticated users visiting `/` are redirected to `/dashboard`
 - Supabase redirect URLs include `https://listingignite.com` and `http://localhost:5173`
 - Google Cloud OAuth authorized redirect URIs include the Supabase callback URL, `https://listingignite.com`, and `https://www.listingignite.com`
+- Email confirmation is enabled — new email/password signups receive a confirmation email from Supabase before they can log in
+- Google OAuth does not require email confirmation (Google already verified the email)
 
 ---
 
@@ -158,7 +160,8 @@ Extends Supabase auth.users.
 - **Edge Function:** `supabase/functions/send-email/index.ts` — accepts POST with `{ to, subject, html, replyTo? }` and sends via Resend
 - **Frontend helper:** `src/lib/edgeFunction.ts` — `callEdgeFunction(name, payload)` utility for calling any Edge Function with auth headers
 - **Planned email types:** feedback notifications to jason@listingignite.com, transactional emails to users, and marketing/product update emails to opted-in users and leads
-- **Status:** Resend account suspended on signup — reactivation request submitted with full use case details. Awaiting response (submitted over Easter holiday weekend — expect reply Monday/Tuesday).
+- **Status:** Resend account suspended on signup — reactivation request submitted with full use case details. Awaiting response (submitted over Easter holiday weekend).
+- **Important:** `send-email` Edge Function is deployed but has NOT been tested end-to-end yet — blocked until Resend reactivates the account.
 
 ---
 
@@ -167,8 +170,8 @@ Extends Supabase auth.users.
 Edge Functions are server-side Deno functions that run on Supabase's infrastructure. They keep secrets off the client side.
 
 **Current Edge Functions:**
-- `send-email` — sends email via Resend API
-- `generate-content` — calls Anthropic API server-side to generate all 6 marketing outputs
+- `send-email` — sends email via Resend API (deployed, untested pending Resend reactivation)
+- `generate-content` — calls Anthropic API server-side to generate all 6 marketing outputs (deployed and fully tested ✅)
 
 **Deploy commands:**
 ```bash
@@ -182,6 +185,9 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref fmcnfutdyqmwtommnryx
 
 # List secrets (shows digests only, not actual values)
 supabase secrets list --project-ref fmcnfutdyqmwtommnryx
+
+# Login to Supabase CLI (required before deploy commands)
+supabase login
 ```
 
 ---
@@ -213,7 +219,7 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
 - **No hard deletes.** Listings are never permanently deleted — they are marked as `sold` or `inactive` to preserve data integrity and prevent credit abuse disputes.
 - **Edit modal pattern.** Listing editing is handled via a reusable `EditListingModal` component, triggered from both the dashboard card (pencil icon) and the listing detail page ("Edit Listing" button).
-- **Copy buttons.** Each output section has a "Copy" button that uses `navigator.clipboard.writeText()` with a `window.getSelection()` + `Range` fallback (for environments where clipboard API is unavailable). Content is normalized before copying: Unicode spaces stripped, line endings unified to CRLF. On success the button shows "✓ Copied!" for 2 seconds. On fallback, an amber message prompts the user to press Cmd+C / Ctrl+C.
+- **Copy buttons** use `navigator.clipboard.writeText()` with normalized line endings. Falls back to auto-selecting text if clipboard API fails. Works reliably on HTTPS (production).
 
 ---
 
@@ -241,22 +247,39 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - Status badge is color coded: green (Active), gold (Sold), grey (Inactive)
 - "Edit Listing" button in hero section opens EditListingModal
 - Marketing content tabs below the hero section
-- Each output section has a Copy button with clipboard API + fallback selection
+- Each tab has a copy button using normalized clipboard API
 
 ### Landing Page (`src/pages/Landing.tsx`)
 - Route: `/` for unauthenticated users
 - Authenticated users visiting `/` are redirected to `/dashboard`
 - Sections: Nav, Hero, Problem, Features (6 output types), How It Works (3 steps), CTA, Footer
-- Matches dark premium aesthetic of the app with purple accents
+- Footer links to `/privacy` and `/terms`
+- Matches dark premium aesthetic with purple accents
 - Fully responsive (mobile, tablet, desktop)
+
+### Legal Pages
+- `src/pages/PrivacyPolicy.tsx` at route `/privacy`
+- `src/pages/Terms.tsx` at route `/terms`
+- Content sourced from `legal-content.md` in project root
+- Both pages link back to `/` and match app aesthetic
+- Login page "Terms of Service" and "Privacy Policy" text are live links
+- AI-generated, not lawyer reviewed — sufficient for MVP stage
+- Contact email: jason@listingignite.com
+
+---
+
+## Project Files Reference
+- `CLAUDE.md` — main project brief and developer guide (this file)
+- `legal-content.md` — full text content for Privacy Policy and Terms of Service pages
+- `database.sql` — Supabase schema SQL including RLS policies and profile trigger
 
 ---
 
 ## Security Notes
 
-- ✅ **Anthropic API key is fully secured** — moved to Supabase Edge Function secret. No longer in `.env.local` or Vercel environment variables. Never exposed to the browser.
-- ✅ **Resend API key is secured** — stored as Supabase Edge Function secret, never client-side.
-- ⚠️ **GitHub repository is currently public** — to work around Vercel Hobby plan deployment restrictions. To make private again: ensure git committer email matches Vercel account email (`jason@listingignite.com`) by running `git config --global user.email "jason@listingignite.com"`.
+- ✅ **Anthropic API key is fully secured** — Supabase Edge Function secret only, never in browser
+- ✅ **Resend API key is secured** — Supabase Edge Function secret only, never client-side
+- ⚠️ **GitHub repository is public** — required for Vercel Hobby plan compatibility. All secrets are in Supabase and Vercel environment variables, not in the repo. Safe to keep public at this stage.
 
 ---
 
@@ -322,18 +345,28 @@ Internal tool for managing users, manually adjusting credits, viewing usage stat
 
 ---
 
+### 🏷️ Listing Status — Sold & Inactive
+Already built and live. Documented here for completeness.
+- `active` — default, shows on main dashboard
+- `sold` — hidden from active dashboard, shown in Sold tab with 🎉 badge
+- `inactive` — hidden from active dashboard, shown in Inactive tab
+- All status changes are reversible and never affect credits
+
+---
+
 ## Project Status
 
 - [x] Project scaffolded (Vite + React + TS)
 - [x] Supabase project created & env vars configured
 - [x] Supabase Google OAuth enabled
+- [x] Email/password auth enabled (with email confirmation)
 - [x] Database schema applied (profiles, listings, generated_outputs)
-- [x] Auth flow implemented (Google OAuth, protected routes, auth context)
+- [x] Auth flow implemented (Google OAuth + email/password, protected routes)
 - [x] Session persistence fixed (survives browser close via localStorage)
 - [x] Listing input form built (hybrid structured + freeform)
 - [x] Anthropic API integration complete (single call, all 6 outputs)
 - [x] Anthropic API key migrated to Supabase Edge Function (server-side only)
-- [x] Output UI (tabs + loading state + manual copy helper text)
+- [x] Output UI (tabs + loading state + working copy buttons)
 - [x] Listings and outputs saved to Supabase
 - [x] Credit tracking implemented (deduct on success, block at 0)
 - [x] Paywall placeholder built
@@ -346,10 +379,9 @@ Internal tool for managing users, manually adjusting credits, viewing usage stat
 - [x] Supabase Edge Function foundation (send-email + generate-content)
 - [x] Resend account created, domain verified, API key set in Supabase secrets
 - [x] Landing page live at listingignite.com
+- [x] Legal pages live (/privacy and /terms)
 - [x] Deployed to Vercel + custom domain connected (listingignite.com)
 - [x] Google OAuth and Supabase redirect URLs updated for production
 - [x] Resend reactivation request submitted
-- [ ] Resend account reactivated (pending — submitted over Easter holiday weekend)
-- [x] Step E — Email/password auth (non-Google login)
+- [ ] Resend account reactivated (pending)
 - [ ] Feedback form UI (blocked until Resend reactivated)
-- [ ] Make GitHub repo private again (fix git identity: jason@listingignite.com)

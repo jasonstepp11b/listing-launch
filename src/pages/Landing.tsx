@@ -164,7 +164,11 @@ export default function Landing() {
             <span style={s.brandName}>ListingIgnite</span>
           </div>
           <p style={s.footerCopy}>© {new Date().getFullYear()} ListingIgnite. All rights reserved.</p>
-          <Link to="/login" style={s.footerLink}>Sign In</Link>
+          <div style={s.footerLinks}>
+            <Link to="/privacy" style={s.footerLink} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
+            <Link to="/terms" style={s.footerLink} target="_blank" rel="noopener noreferrer">Terms of Service</Link>
+            <Link to="/login" style={s.footerLink}>Sign In</Link>
+          </div>
         </div>
       </footer>
 
@@ -537,6 +541,12 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: '13px',
     color: '#4b5563',
     margin: 0,
+  },
+  footerLinks: {
+    display: 'flex',
+    gap: '20px',
+    alignItems: 'center',
+    flexWrap: 'wrap' as const,
   },
   footerLink: {
     fontSize: '13px',

@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard'
 import NewListing from './pages/NewListing'
 import ListingDetail from './pages/ListingDetail'
 import Profile from './pages/Profile'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import Terms from './pages/Terms'
 
 // Authenticated users go straight to /dashboard; everyone else sees the landing page.
 function RootRoute() {
@@ -55,6 +57,8 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

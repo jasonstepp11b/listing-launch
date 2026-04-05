@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -228,7 +228,10 @@ export default function Login() {
         </p>
 
         <p style={s.fine}>
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          By continuing, you agree to our{' '}
+          <Link to="/terms" style={s.fineLink} target="_blank" rel="noopener noreferrer">Terms of Service</Link>
+          {' '}and{' '}
+          <Link to="/privacy" style={s.fineLink} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
         </p>
       </div>
     </div>
@@ -410,5 +413,9 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     color: '#4b5563',
     lineHeight: '1.5',
+  },
+  fineLink: {
+    color: '#6b7280',
+    textDecoration: 'underline',
   },
 }
