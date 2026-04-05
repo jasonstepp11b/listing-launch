@@ -3,65 +3,232 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
+type Mode = 'login' | 'signup' | 'confirmed'
+
 export default function Login() {
   const { session, loading } = useAuth()
   const navigate = useNavigate()
-  const [signingIn, setSigningIn] = useState(false)
+
+  const [mode, setMode] = useState<Mode>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    document.title = 'ListingIgnite — Sign In'
-  }, [])
+    document.title = mode === 'signup'
+      ? 'ListingIgnite — Create Account'
+      : 'ListingIgnite — Sign In'
+  }, [mode])
 
   useEffect(() => {
-    if (!loading && session) {
-      navigate('/dashboard', { replace: true })
-    }
+    if (!loading && session) navigate('/dashboard', { replace: true })
   }, [session, loading, navigate])
 
+  function switchMode(next: Mode) {
+    setMode(next)
+    setError(null)
+    setPassword('')
+  }
+
+  // ── Google OAuth ───────────────────────────────────────────────────────────
+
   async function handleGoogleSignIn() {
-    setSigningIn(true)
+    setSubmitting(true)
     setError(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/dashboard` },
     })
     if (error) {
-      setError('Sign-in failed. Please try again.')
-      setSigningIn(false)
+      setError('Google sign-in failed. Please try again.')
+      setSubmitting(false)
     }
-    // On success the browser redirects — no need to reset signingIn
+    // On success the browser redirects — no need to reset submitting
   }
 
+  // ── Email sign-in ──────────────────────────────────────────────────────────
+
+  async function handleEmailSignIn(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email || !password) { setError('Please enter your email and password.'); return }
+    setSubmitting(true)
+    setError(null)
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      setError(
+        error.message.toLowerCase().includes('invalid')
+          ? 'Incorrect email or password. Please try again.'
+          : error.message,
+      )
+      setSubmitting(false)
+    }
+    // On success, AuthContext detects the session and the useEffect above redirects
+  }
+
+  // ── Email sign-up ──────────────────────────────────────────────────────────
+
+  async function handleEmailSignUp(e: React.FormEvent) {
+    e.preventDefault()
+    if (!fullName.trim()) { setError('Please enter your full name.'); return }
+    if (!email) { setError('Please enter your email address.'); return }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
+    setSubmitting(true)
+    setError(null)
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // Passed into raw_user_meta_data — picked up by the handle_new_user trigger
+        data: { full_name: fullName.trim() },
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    })
+
+    if (error) {
+      setError(error.message)
+      setSubmitting(false)
+    } else {
+      setMode('confirmed')
+    }
+  }
+
+  // ── Confirmed state ────────────────────────────────────────────────────────
+
+  if (mode === 'confirmed') {
+    return (
+      <div style={s.page}>
+        <div style={s.card}>
+          <div style={s.logoMark}>✦</div>
+          <div style={s.confirmedIcon}>✉️</div>
+          <h1 style={s.heading}>Check your email</h1>
+          <p style={s.subheading}>
+            We sent a confirmation link to <strong style={{ color: '#f3f4f6' }}>{email}</strong>.
+            Click the link in that email to activate your account and get started.
+          </p>
+          <p style={s.fine}>
+            Didn't receive it? Check your spam folder, or{' '}
+            <button style={s.textBtn} onClick={() => switchMode('signup')}>try again</button>.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Sign-in / Sign-up form ─────────────────────────────────────────────────
+
+  const isSignup = mode === 'signup'
+
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.logoMark}>✦</div>
-        <h1 style={styles.heading}>ListingIgnite</h1>
-        <p style={styles.subheading}>
-          Instant marketing content for every listing.<br />
-          MLS copy, social posts, email blasts, and more — in seconds.
+    <div style={s.page}>
+      <div style={s.card}>
+        <div style={s.logoMark}>✦</div>
+        <h1 style={s.heading}>ListingIgnite</h1>
+        <p style={s.subheading}>
+          {isSignup
+            ? 'Create your free account — no credit card required.'
+            : 'Instant marketing content for every listing.'}
         </p>
 
-        {error && <p style={styles.error}>{error}</p>}
+        {error && <div style={s.error}>{error}</div>}
 
+        {/* Google OAuth */}
         <button
-          style={signingIn ? { ...styles.googleButton, ...styles.googleButtonLoading } : styles.googleButton}
+          style={submitting ? { ...s.googleBtn, ...s.googleBtnLoading } : s.googleBtn}
           onClick={handleGoogleSignIn}
-          disabled={signingIn}
+          disabled={submitting}
+          type="button"
         >
-          {signingIn ? (
-            <span style={styles.signingInText}>Redirecting to Google…</span>
+          {submitting ? (
+            <span style={{ color: '#6b7280' }}>Redirecting…</span>
           ) : (
             <>
               <GoogleIcon />
-              Sign in with Google
+              {isSignup ? 'Sign up with Google' : 'Sign in with Google'}
             </>
           )}
         </button>
 
-        <p style={styles.fine}>
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+        {/* Divider */}
+        <div style={s.divider}>
+          <div style={s.dividerLine} />
+          <span style={s.dividerText}>or</span>
+          <div style={s.dividerLine} />
+        </div>
+
+        {/* Email/password form */}
+        <form onSubmit={isSignup ? handleEmailSignUp : handleEmailSignIn} noValidate>
+          {isSignup && (
+            <div style={s.field}>
+              <label style={s.label}>Full Name</label>
+              <input
+                style={s.input}
+                type="text"
+                placeholder="Jane Smith"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                autoComplete="name"
+                disabled={submitting}
+              />
+            </div>
+          )}
+
+          <div style={s.field}>
+            <label style={s.label}>Email</label>
+            <input
+              style={s.input}
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              autoComplete={isSignup ? 'email' : 'username'}
+              disabled={submitting}
+            />
+          </div>
+
+          <div style={s.field}>
+            <label style={s.label}>Password {isSignup && <span style={s.labelHint}>min. 8 characters</span>}</label>
+            <input
+              style={s.input}
+              type="password"
+              placeholder={isSignup ? 'Create a password' : 'Your password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              autoComplete={isSignup ? 'new-password' : 'current-password'}
+              disabled={submitting}
+            />
+          </div>
+
+          <button
+            style={submitting ? { ...s.submitBtn, ...s.submitBtnLoading } : s.submitBtn}
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting
+              ? (isSignup ? 'Creating account…' : 'Signing in…')
+              : (isSignup ? 'Create Account' : 'Sign In')}
+          </button>
+        </form>
+
+        {/* Mode toggle */}
+        <p style={s.toggle}>
+          {isSignup ? (
+            <>Already have an account?{' '}
+              <button style={s.textBtn} onClick={() => switchMode('login')}>Sign in</button>
+            </>
+          ) : (
+            <>Don't have an account?{' '}
+              <button style={s.textBtn} onClick={() => switchMode('signup')}>Sign up free</button>
+            </>
+          )}
+        </p>
+
+        <p style={s.fine}>
+          By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
     </div>
@@ -79,7 +246,7 @@ function GoogleIcon() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
     display: 'flex',
@@ -104,18 +271,23 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#a855f7',
     marginBottom: '16px',
   },
+  confirmedIcon: {
+    fontSize: '40px',
+    marginBottom: '12px',
+  },
   heading: {
     fontSize: '28px',
     fontWeight: '700',
     color: '#f3f4f6',
     margin: '0 0 12px',
     letterSpacing: '-0.5px',
+    fontFamily: 'inherit',
   },
   subheading: {
     fontSize: '15px',
     color: '#9ca3af',
     lineHeight: '1.6',
-    margin: '0 0 36px',
+    margin: '0 0 28px',
   },
   error: {
     background: 'rgba(239, 68, 68, 0.1)',
@@ -125,9 +297,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '13px',
     padding: '10px 14px',
     marginBottom: '16px',
-    margin: '0 0 16px',
+    textAlign: 'left',
   },
-  googleButton: {
+  googleBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -144,17 +316,99 @@ const styles: Record<string, React.CSSProperties> = {
     boxSizing: 'border-box',
     fontFamily: 'inherit',
   },
-  googleButtonLoading: {
+  googleBtnLoading: {
     background: '#e5e7eb',
     cursor: 'default',
   },
-  signingInText: {
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    margin: '24px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: '#2e2e3a',
+  },
+  dividerText: {
+    fontSize: '12px',
+    color: '#4b5563',
+    fontWeight: '500',
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+  },
+  field: {
+    marginBottom: '14px',
+    textAlign: 'left',
+  },
+  label: {
+    display: 'block',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#d1d5db',
+    marginBottom: '6px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  labelHint: {
+    fontWeight: '400',
     color: '#6b7280',
+    textTransform: 'none',
+    letterSpacing: '0',
+  },
+  input: {
+    width: '100%',
+    padding: '10px 14px',
+    background: '#13131a',
+    border: '1px solid #3a3a4a',
+    borderRadius: '7px',
+    color: '#f3f4f6',
+    fontSize: '14px',
+    boxSizing: 'border-box',
+    outline: 'none',
+    fontFamily: 'inherit',
+  },
+  submitBtn: {
+    width: '100%',
+    padding: '13px 20px',
+    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    marginTop: '4px',
+  },
+  submitBtnLoading: {
+    background: '#2e2e3a',
+    color: '#4b5563',
+    boxShadow: 'none',
+    cursor: 'default',
+  },
+  toggle: {
+    marginTop: '20px',
+    fontSize: '14px',
+    color: '#9ca3af',
+  },
+  textBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#a855f7',
+    fontSize: 'inherit',
+    fontWeight: '600',
+    cursor: 'pointer',
+    padding: 0,
+    fontFamily: 'inherit',
   },
   fine: {
-    marginTop: '20px',
+    marginTop: '16px',
     fontSize: '12px',
-    color: '#6b7280',
+    color: '#4b5563',
     lineHeight: '1.5',
   },
 }
