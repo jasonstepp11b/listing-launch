@@ -16,7 +16,7 @@ This app eliminates that entirely.
 |---|---|
 | Frontend | Vite + React + TypeScript |
 | Auth & Database | Supabase (OAuth via Google, PostgreSQL) |
-| AI Generation | Anthropic API (Claude) |
+| AI Generation | Anthropic API (Claude) via Supabase Edge Function |
 | Email | Resend (via Supabase Edge Function) |
 | Hosting | Vercel |
 | Domain | listingignite.com (registered via Spaceship) |
@@ -31,7 +31,7 @@ The MVP is intentionally tight. Ship these six things, nothing more:
 1. **Auth** — Supabase Google OAuth login
 2. **Listing Input Form** — Hybrid approach: structured fields + optional freeform notes
 3. **AI Generation** — Anthropic API call producing all 6 output types in a single request
-4. **Output UI** — Tabbed layout per content type, copy-to-clipboard buttons, polished presentation
+4. **Output UI** — Tabbed layout per content type, polished presentation
 5. **Persistence** — Save listing inputs + generated outputs to Supabase per user
 6. **Credit Tracking** — 3 free listings per user, then a paywall placeholder (no real payment yet)
 
@@ -60,7 +60,8 @@ Use a **hybrid approach**:
 ## AI Output Types
 
 All 6 outputs are generated in a **single Anthropic API call** from one structured prompt.
-Outputs are displayed in a tabbed UI with individual copy buttons.
+The call is made server-side via the `generate-content` Supabase Edge Function.
+Outputs are displayed in a tabbed UI.
 
 | Tab | Output |
 |---|---|
@@ -137,11 +138,13 @@ Extends Supabase auth.users.
 
 ## Auth Flow
 
-- **Provider:** Google OAuth via Supabase
+- **Primary provider:** Google OAuth via Supabase
+- **Planned:** Email/password auth (Step E) — to support users without Google accounts
 - On first login, a `profiles` row is auto-created with `credits_remaining = 3`
-- Session is managed by Supabase client — no custom JWT handling needed
+- Session is managed by Supabase client and persists across browser closes via localStorage
 - Protected routes redirect unauthenticated users to the login page
-- Supabase redirect URLs include both `https://listingignite.com` and `http://localhost:5173`
+- Authenticated users visiting `/` are redirected to `/dashboard`
+- Supabase redirect URLs include `https://listingignite.com` and `http://localhost:5173`
 - Google Cloud OAuth authorized redirect URIs include the Supabase callback URL, `https://listingignite.com`, and `https://www.listingignite.com`
 
 ---
@@ -155,30 +158,30 @@ Extends Supabase auth.users.
 - **Edge Function:** `supabase/functions/send-email/index.ts` — accepts POST with `{ to, subject, html, replyTo? }` and sends via Resend
 - **Frontend helper:** `src/lib/edgeFunction.ts` — `callEdgeFunction(name, payload)` utility for calling any Edge Function with auth headers
 - **Planned email types:** feedback notifications to jason@listingignite.com, transactional emails to users, and marketing/product update emails to opted-in users and leads
-- **Status:** Resend account suspended on signup — reactivation request submitted with full use case details. Awaiting response.
+- **Status:** Resend account suspended on signup — reactivation request submitted with full use case details. Awaiting response (submitted over Easter holiday weekend — expect reply Monday/Tuesday).
 
 ---
 
 ## Supabase Edge Functions
 
-Edge Functions are server-side Deno functions that run on Supabase's infrastructure. They are used to keep secrets off the client side.
+Edge Functions are server-side Deno functions that run on Supabase's infrastructure. They keep secrets off the client side.
 
 **Current Edge Functions:**
 - `send-email` — sends email via Resend API
+- `generate-content` — calls Anthropic API server-side to generate all 6 marketing outputs
 
-**Planned Edge Functions (pre-public-launch):**
-- `generate-content` — migrate the Anthropic API call from client-side to server-side (see Security Notes)
-
-**Local development:**
+**Deploy commands:**
 ```bash
-# Serve functions locally
-supabase functions serve send-email --env-file supabase/.env.local
-
-# Deploy to production
-supabase functions deploy send-email --project-ref <your-project-ref>
+# Deploy a function
+supabase functions deploy generate-content --project-ref fmcnfutdyqmwtommnryx
+supabase functions deploy send-email --project-ref fmcnfutdyqmwtommnryx
 
 # Set secrets
-supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-... --project-ref fmcnfutdyqmwtommnryx
+supabase secrets set RESEND_API_KEY=re_... --project-ref fmcnfutdyqmwtommnryx
+
+# List secrets (shows digests only, not actual values)
+supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 ```
 
 ---
@@ -190,11 +193,13 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
 |---|---|
 | `VITE_SUPABASE_URL` | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous/public key |
-| `VITE_ANTHROPIC_API_KEY` | Anthropic API key (client-side for now — see Security Notes) |
+
+> Note: `VITE_ANTHROPIC_API_KEY` has been removed from both `.env.local` and Vercel environment variables. The Anthropic API is now called exclusively server-side via the `generate-content` Edge Function.
 
 ### Supabase Edge Function Secrets
 | Secret | Description |
 |---|---|
+| `ANTHROPIC_API_KEY` | Anthropic API key — server-side only, never exposed to client |
 | `RESEND_API_KEY` | Resend API key for sending email |
 
 ---
@@ -249,10 +254,9 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
 
 ## Security Notes
 
-- The Anthropic API key is currently exposed on the client side via `VITE_ANTHROPIC_API_KEY`. This is acceptable for private demo use only.
-- **Before any public launch**, the Anthropic API call must be moved to a Supabase Edge Function (`generate-content`) to protect the API key. This is Step C3 in the build plan.
-- The Resend API key is correctly stored server-side as a Supabase secret — never exposed to the client.
-- GitHub repository is currently public to work around Vercel Hobby plan deployment restrictions. Consider making private again once git identity is correctly configured (`git config --global user.email` must match the Vercel account email: `jason@listingignite.com`).
+- ✅ **Anthropic API key is fully secured** — moved to Supabase Edge Function secret. No longer in `.env.local` or Vercel environment variables. Never exposed to the browser.
+- ✅ **Resend API key is secured** — stored as Supabase Edge Function secret, never client-side.
+- ⚠️ **GitHub repository is currently public** — to work around Vercel Hobby plan deployment restrictions. To make private again: ensure git committer email matches Vercel account email (`jason@listingignite.com`) by running `git config --global user.email "jason@listingignite.com"`.
 
 ---
 
@@ -270,13 +274,6 @@ supabase secrets set RESEND_API_KEY=re_... --project-ref <your-project-ref>
 ---
 
 ## Future Roadmap (Post-MVP)
-
-### 🔒 Anthropic API Key Migration to Edge Function
-**Priority: Critical — must complete before public launch**
-
-Move the `generateContent.ts` Anthropic API call from the client side to a Supabase Edge Function called `generate-content`. This prevents the API key from being visible in the browser and protects against unauthorized usage and cost exposure.
-
----
 
 ### 📧 Feedback Form
 **Priority: High — blocked until Resend account is reactivated**
@@ -332,8 +329,10 @@ Internal tool for managing users, manually adjusting credits, viewing usage stat
 - [x] Supabase Google OAuth enabled
 - [x] Database schema applied (profiles, listings, generated_outputs)
 - [x] Auth flow implemented (Google OAuth, protected routes, auth context)
+- [x] Session persistence fixed (survives browser close via localStorage)
 - [x] Listing input form built (hybrid structured + freeform)
 - [x] Anthropic API integration complete (single call, all 6 outputs)
+- [x] Anthropic API key migrated to Supabase Edge Function (server-side only)
 - [x] Output UI (tabs + loading state + manual copy helper text)
 - [x] Listings and outputs saved to Supabase
 - [x] Credit tracking implemented (deduct on success, block at 0)
@@ -344,14 +343,13 @@ Internal tool for managing users, manually adjusting credits, viewing usage stat
 - [x] Edit listing details + image replacement (EditListingModal)
 - [x] Profile / Account page with avatar upload
 - [x] Listing status management (Active / Sold / Inactive via EditListingModal)
-- [x] Supabase Edge Function foundation (send-email + frontend helper)
+- [x] Supabase Edge Function foundation (send-email + generate-content)
 - [x] Resend account created, domain verified, API key set in Supabase secrets
-- [x] Landing page live at listingignite.com (hero, features, how it works, CTA)
+- [x] Landing page live at listingignite.com
 - [x] Deployed to Vercel + custom domain connected (listingignite.com)
 - [x] Google OAuth and Supabase redirect URLs updated for production
-- [x] Session persistence fixed (survives browser close)
 - [x] Resend reactivation request submitted
-- [ ] Resend account reactivated (pending)
-- [ ] Feedback form UI (Step C2 — blocked until Resend reactivated)
-- [ ] Anthropic API key migrated to Edge Function (Step C3 — before public launch)
-- [ ] Make GitHub repo private again (after fixing git identity config)
+- [ ] Resend account reactivated (pending — submitted over Easter holiday weekend)
+- [ ] Step E — Email/password auth (non-Google login)
+- [ ] Feedback form UI (blocked until Resend reactivated)
+- [ ] Make GitHub repo private again (fix git identity: jason@listingignite.com)
