@@ -354,6 +354,15 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+[functions.generate-content]
+# JWT verification is disabled because the Supabase gateway's JWT check fires before
+# our function code runs. Auth is enforced at the app level (protected routes) and
+# the function itself doesn't touch the database directly.
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

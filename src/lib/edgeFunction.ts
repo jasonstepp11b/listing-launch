@@ -30,9 +30,19 @@ export async function callEdgeFunction<T = unknown>(
   functionName: string,
   payload: Record<string, unknown>,
 ): Promise<EdgeFunctionResult<T>> {
-  // Get the current session token so the Edge Function can authenticate the caller
-  const { data: { session } } = await supabase.auth.getSession()
+  // Get the current session — try getSession first, then force a refresh if null
+  let { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    console.warn(`[callEdgeFunction:${functionName}] getSession() returned null — attempting refresh`)
+    const { data: refreshed } = await supabase.auth.refreshSession()
+    session = refreshed.session
+  }
+
   const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY
+  console.log(
+    `[callEdgeFunction:${functionName}] token source:`,
+    session?.access_token ? 'session.access_token (JWT)' : 'anon key fallback',
+  )
 
   let response: Response
   try {
@@ -57,6 +67,7 @@ export async function callEdgeFunction<T = unknown>(
   try {
     body = await response.json()
   } catch {
+    console.error(`[callEdgeFunction:${functionName}] Could not parse response as JSON — status ${response.status}`)
     return {
       data: null,
       error: `Unexpected response from ${functionName} (status ${response.status})`,
@@ -64,6 +75,7 @@ export async function callEdgeFunction<T = unknown>(
   }
 
   if (!response.ok) {
+    console.error(`[callEdgeFunction:${functionName}] HTTP ${response.status} — full error body:`, body)
     const errMsg = typeof body.error === 'string'
       ? body.error
       : `Edge function error (status ${response.status})`
