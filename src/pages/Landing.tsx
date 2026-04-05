@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const FEATURES = [
@@ -37,21 +38,46 @@ const STEPS = [
   {
     number: '01',
     title: 'Fill in your listing details',
-    desc: 'Enter the address, price, features, and anything that makes the property special.',
+    desc: 'Address, price, bedrooms, key features, and anything that makes the property special — structured fields make it fast.',
   },
   {
     number: '02',
     title: 'AI generates everything',
-    desc: 'In under 30 seconds, Claude produces all 6 formats in a single request — no waiting, no prompting.',
+    desc: 'Claude AI produces all 6 formats simultaneously in a single request — no waiting, no back and forth, no prompting required.',
   },
   {
     number: '03',
     title: 'Copy and use instantly',
-    desc: 'Highlight any section and paste directly into your MLS, email tool, or social platform.',
+    desc: 'Highlight any section and paste directly into your MLS system, email tool, social scheduler, or design app.',
+  },
+]
+
+const FAQ = [
+  {
+    q: 'Is it really free to start?',
+    a: 'Yes — every new account includes 3 free listing generations. No credit card required. Paid plans are coming soon.',
+  },
+  {
+    q: 'Will the content sound generic?',
+    a: 'ListingIgnite tailors every output to your specific property details, features, neighborhood, and target buyer. The more detail you provide, the better the results.',
+  },
+  {
+    q: 'What platforms does the social media content work for?',
+    a: 'We generate separate posts optimized for Facebook, Instagram, and X (Twitter) — each written in the style that performs best on that platform.',
+  },
+  {
+    q: 'Do I need to edit the output?',
+    a: 'Most agents use the output with minor tweaks. We always recommend reviewing AI-generated content before publishing to make sure it matches your voice and complies with your local MLS rules.',
+  },
+  {
+    q: 'Is my listing data private?',
+    a: 'Yes. Your data is stored securely and never shared or sold. See our Privacy Policy for full details.',
   },
 ]
 
 export default function Landing() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
   return (
     <div style={s.page}>
 
@@ -79,8 +105,10 @@ export default function Landing() {
             Paste in your listing details and get a complete marketing package — MLS description,
             social posts, email blast, flyer copy, video script, and SEO page — all at once.
           </p>
-          <Link to="/login" style={s.heroCta}>Get Started Free →</Link>
-          <p style={s.heroNoCc}>No credit card required · 3 free listings included</p>
+          <div style={s.ctaStack}>
+            <Link to="/login" style={s.heroCta}>Get Started Free →</Link>
+            <p style={s.heroNoCc}>Start free — includes 3 listings. No credit card required.</p>
+          </div>
         </div>
 
         {/* Decorative glow */}
@@ -139,9 +167,40 @@ export default function Landing() {
                 <div style={s.stepNumber}>{step.number}</div>
                 <h3 style={s.stepTitle}>{step.title}</h3>
                 <p style={s.stepDesc}>{step.desc}</p>
-                {i < STEPS.length - 1 && <div style={s.stepArrow} aria-hidden>→</div>}
+                {i < STEPS.length - 1 && (
+                  <div style={s.stepArrow} className="landing-step-arrow" aria-hidden>→</div>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ───────────────────────────────────────────────── */}
+      <section style={s.faq}>
+        <div style={s.sectionInner}>
+          <p style={s.sectionEyebrow}>FAQ</p>
+          <h2 style={s.sectionHeadline}>Common questions</h2>
+          <div style={s.faqList}>
+            {FAQ.map((item, i) => {
+              const isOpen = openFaq === i
+              return (
+                <div key={item.q} style={s.faqItem}>
+                  <button
+                    style={s.faqBtn}
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    type="button"
+                  >
+                    <span style={s.faqQ}>{item.q}</span>
+                    <span style={isOpen ? { ...s.faqChevron, ...s.faqChevronOpen } : s.faqChevron}>
+                      {isOpen ? '−' : '+'}
+                    </span>
+                  </button>
+                  {isOpen && <p style={s.faqA}>{item.a}</p>}
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -150,9 +209,12 @@ export default function Landing() {
       <section style={s.cta}>
         <div style={s.ctaInner}>
           <div style={s.ctaGlow} aria-hidden />
-          <h2 style={s.ctaHeadline}>Ready to get your first listing done in seconds?</h2>
-          <p style={s.ctaSub}>Start for free. No credit card required.</p>
-          <Link to="/login" style={s.ctaBtn}>Get Started Free →</Link>
+          <h2 style={s.ctaHeadline}>Stop spending hours on marketing. Start in seconds.</h2>
+          <p style={s.ctaSub}>Join real estate agents who are already saving time on every listing.</p>
+          <div style={s.ctaStack}>
+            <Link to="/login" style={s.ctaBtn}>Get Started Free →</Link>
+            <p style={s.ctaNoCc}>Start free — includes 3 listings. No credit card required.</p>
+          </div>
         </div>
       </section>
 
@@ -290,10 +352,22 @@ const s: Record<string, React.CSSProperties> = {
     boxShadow: '0 8px 32px rgba(147, 51, 234, 0.45)',
     letterSpacing: '-0.2px',
   },
+  ctaStack: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '16px',
+  },
   heroNoCc: {
+    display: 'inline-block',
+    padding: '7px 16px',
+    background: 'rgba(168, 85, 247, 0.08)',
+    border: '1px solid rgba(168, 85, 247, 0.2)',
+    borderRadius: '20px',
     fontSize: '13px',
-    color: '#4b5563',
-    margin: '16px 0 0',
+    fontWeight: '500',
+    color: '#c084fc',
+    margin: 0,
   },
   heroGlow: {
     position: 'absolute' as const,
@@ -340,7 +414,7 @@ const s: Record<string, React.CSSProperties> = {
 
   // ── Problem
   problem: {
-    padding: '80px 24px',
+    padding: '60px 24px',
     borderTop: '1px solid #1e1e28',
   },
   problemCard: {
@@ -378,43 +452,43 @@ const s: Record<string, React.CSSProperties> = {
 
   // ── Features
   features: {
-    padding: '96px 24px',
+    padding: '72px 24px',
     borderTop: '1px solid #1e1e28',
   },
   featureGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '20px',
+    gap: '24px',
   },
   featureCard: {
     background: '#1c1c24',
     border: '1px solid #2e2e3a',
-    borderRadius: '14px',
-    padding: '28px 24px',
+    borderRadius: '16px',
+    padding: '36px 28px',
   },
   featureIcon: {
-    fontSize: '28px',
-    marginBottom: '14px',
+    fontSize: '36px',
+    marginBottom: '18px',
     display: 'block',
   },
   featureTitle: {
-    fontSize: '15px',
+    fontSize: '17px',
     fontWeight: '700',
     color: '#f3f4f6',
-    margin: '0 0 8px',
+    margin: '0 0 10px',
     letterSpacing: '-0.2px',
     fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
   },
   featureDesc: {
-    fontSize: '13px',
+    fontSize: '14px',
     color: '#6b7280',
-    lineHeight: '1.6',
+    lineHeight: '1.65',
     margin: 0,
   },
 
   // ── How it works
   howItWorks: {
-    padding: '96px 24px',
+    padding: '72px 24px',
     borderTop: '1px solid #1e1e28',
   },
   stepsRow: {
@@ -464,9 +538,60 @@ const s: Record<string, React.CSSProperties> = {
     pointerEvents: 'none',
   },
 
+  // ── FAQ
+  faq: {
+    padding: '72px 24px',
+    borderTop: '1px solid #1e1e28',
+  },
+  faqList: {
+    maxWidth: '760px',
+    marginTop: '48px',
+    borderTop: '1px solid #2e2e3a',
+  },
+  faqItem: {
+    borderBottom: '1px solid #2e2e3a',
+  },
+  faqBtn: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '16px',
+    padding: '22px 4px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+    fontFamily: 'inherit',
+  },
+  faqQ: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#f3f4f6',
+    lineHeight: '1.4',
+    letterSpacing: '-0.2px',
+  },
+  faqChevron: {
+    fontSize: '20px',
+    fontWeight: '400',
+    color: '#6b7280',
+    flexShrink: 0,
+    lineHeight: 1,
+  },
+  faqChevronOpen: {
+    color: '#a855f7',
+  },
+  faqA: {
+    fontSize: '15px',
+    color: '#9ca3af',
+    lineHeight: '1.7',
+    margin: '0 0 22px',
+    paddingRight: '40px',
+  },
+
   // ── Final CTA
   cta: {
-    padding: '96px 24px',
+    padding: '72px 24px',
     borderTop: '1px solid #1e1e28',
   },
   ctaInner: {
@@ -498,9 +623,10 @@ const s: Record<string, React.CSSProperties> = {
     zIndex: 1,
   },
   ctaSub: {
-    fontSize: '16px',
-    color: '#6b7280',
+    fontSize: '17px',
+    color: '#9ca3af',
     margin: '0 0 36px',
+    lineHeight: '1.6',
     position: 'relative' as const,
     zIndex: 1,
   },
@@ -514,6 +640,19 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     textDecoration: 'none',
     boxShadow: '0 8px 32px rgba(147, 51, 234, 0.45)',
+    position: 'relative' as const,
+    zIndex: 1,
+  },
+  ctaNoCc: {
+    display: 'inline-block',
+    padding: '7px 16px',
+    background: 'rgba(168, 85, 247, 0.08)',
+    border: '1px solid rgba(168, 85, 247, 0.2)',
+    borderRadius: '20px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#c084fc',
+    margin: 0,
     position: 'relative' as const,
     zIndex: 1,
   },

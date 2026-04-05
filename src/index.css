@@ -109,9 +109,13 @@ body {
 }
 
 /* Responsive grids for Landing page */
+
 @media (max-width: 860px) {
   .landing-feature-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  .landing-steps-row    { grid-template-columns: 1fr !important; }
+  .landing-steps-row    { grid-template-columns: 1fr !important; gap: 16px !important; }
+
+  /* Step arrows: hide entirely on mobile — numbers provide sequence */
+  .landing-step-arrow { display: none; }
 }
 @media (max-width: 560px) {
   .landing-feature-grid { grid-template-columns: 1fr !important; }
