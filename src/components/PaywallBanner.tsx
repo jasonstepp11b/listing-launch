@@ -81,6 +81,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '40px 32px 32px',
     textAlign: 'center',
     marginTop: '32px',
+    marginBottom: '32px',
     fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
   },
   icon: {
