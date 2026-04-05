@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import AppFooter from '../components/AppFooter'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
@@ -392,6 +393,8 @@ export default function Profile() {
         )}
 
       </div>
+
+      <AppFooter />
     </div>
   )
 }

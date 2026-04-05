@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import EditListingModal from '../components/EditListingModal'
 import type { SavedListingData } from '../components/EditListingModal'
+import AppFooter from '../components/AppFooter'
 
 interface Listing {
   id: string
@@ -206,6 +207,8 @@ export default function Dashboard() {
           onStatusChanged={status => handleStatusChanged(editingListingId, status)}
         />
       )}
+
+      <AppFooter />
     </div>
   )
 }

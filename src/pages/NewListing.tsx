@@ -6,6 +6,7 @@ import { saveListing } from '../lib/saveListing'
 import { useAuth } from '../context/AuthContext'
 import GeneratedOutput from '../components/GeneratedOutput'
 import PaywallBanner from '../components/PaywallBanner'
+import AppFooter from '../components/AppFooter'
 
 const PROPERTY_TYPES = [
   'Single Family',
@@ -414,6 +415,8 @@ export default function NewListing() {
         {credits === 0 && !loading && <PaywallBanner />}
 
       </div>
+
+      <AppFooter />
     </div>
   )
 }
