@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import EditListingModal from '../components/EditListingModal'
 import type { SavedListingData } from '../components/EditListingModal'
 import AppFooter from '../components/AppFooter'
+import PaywallBanner from '../components/PaywallBanner'
 
 interface Listing {
   id: string
@@ -140,12 +141,7 @@ export default function Dashboard() {
         </div>
 
         {/* Paywall notice */}
-        {credits === 0 && (
-          <div style={s.paywall}>
-            <strong style={{ color: '#f3f4f6' }}>You've used all your free credits.</strong>
-            {' '}Paid plans are coming soon — you'll be notified when they're available.
-          </div>
-        )}
+        {credits === 0 && <PaywallBanner />}
 
         {/* Status filter tabs */}
         {!loadingListings && !fetchError && listings.length > 0 && (
@@ -429,17 +425,6 @@ const s: Record<string, React.CSSProperties> = {
     color: '#4b5563',
     boxShadow: 'none',
     cursor: 'not-allowed',
-  },
-  paywall: {
-    background: 'rgba(239, 68, 68, 0.08)',
-    border: '1px solid rgba(239, 68, 68, 0.25)',
-    borderRadius: '10px',
-    padding: '14px 20px',
-    fontSize: '14px',
-    color: '#fca5a5',
-    marginBottom: '32px',
-    lineHeight: '1.5',
-    textAlign: 'left',
   },
   stateBox: {
     display: 'flex',
