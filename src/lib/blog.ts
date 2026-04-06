@@ -79,6 +79,18 @@ function parseFrontmatter(raw: string): { data: Record<string, unknown>; content
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
+function toPostFrontmatter(data: Record<string, unknown>): PostFrontmatter {
+  return {
+    title:          typeof data.title          === 'string'  ? data.title          : '',
+    date:           typeof data.date           === 'string'  ? data.date           : '',
+    excerpt:        typeof data.excerpt        === 'string'  ? data.excerpt        : '',
+    author:         typeof data.author         === 'string'  ? data.author         : '',
+    featuredImage:  typeof data.featuredImage  === 'string'  ? data.featuredImage  : undefined,
+    tags:           Array.isArray(data.tags)                 ? (data.tags as string[]) : [],
+    published:      typeof data.published      === 'boolean' ? data.published      : false,
+  }
+}
+
 /** Returns all published posts sorted by date descending. */
 export function getAllPosts(): PostMeta[] {
   const posts: PostMeta[] = []
@@ -88,7 +100,7 @@ export function getAllPosts(): PostMeta[] {
     const { data } = parseFrontmatter(raw)
     if (!data.published) continue
     const slug = path.replace('../content/blog/', '').replace('.md', '')
-    posts.push({ slug, ...(data as PostFrontmatter) })
+    posts.push({ slug, ...toPostFrontmatter(data) })
   }
 
   return posts.sort(
@@ -105,5 +117,5 @@ export function getPostBySlug(slug: string): Post | null {
   const { data, content } = parseFrontmatter(raw)
   if (!data.published) return null
 
-  return { slug, content, ...(data as PostFrontmatter) }
+  return { slug, content, ...toPostFrontmatter(data) }
 }
