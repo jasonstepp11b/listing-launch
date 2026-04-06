@@ -189,7 +189,7 @@ function Section({ title, hint, content }: SectionProps) {
 
 const s: Record<string, React.CSSProperties> = {
   wrapper: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '16px',
     overflow: 'hidden',
@@ -210,7 +210,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   subheading: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     margin: 0,
   },
   tabBar: {},
@@ -267,7 +267,7 @@ const ss: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '6px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '12px',
     fontWeight: '500',
     cursor: 'pointer',

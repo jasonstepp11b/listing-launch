@@ -6,6 +6,7 @@ import EditListingModal from '../components/EditListingModal'
 import type { SavedListingData } from '../components/EditListingModal'
 import AppFooter from '../components/AppFooter'
 import PaywallBanner from '../components/PaywallBanner'
+import Logo from '../components/Logo'
 
 interface Listing {
   id: string
@@ -98,10 +99,7 @@ export default function Dashboard() {
 
         {/* Top nav */}
         <div style={s.nav}>
-          <div style={s.navBrand}>
-            <span style={s.navSparkle}>✦</span>
-            <span style={s.navTitle}>ListingIgnite</span>
-          </div>
+          <Logo />
           <div style={s.navRight}>
             {credits !== null && (
               <div style={credits > 0 ? s.creditBadge : { ...s.creditBadge, ...s.creditBadgeEmpty }}>
@@ -299,8 +297,8 @@ function ListingCard({
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     color: '#f3f4f6',
     padding: '0 0 80px',
   },
@@ -358,7 +356,7 @@ const s: Record<string, React.CSSProperties> = {
     width: '32px',
     height: '32px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -381,7 +379,7 @@ const s: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '6px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -401,23 +399,23 @@ const s: Record<string, React.CSSProperties> = {
     color: '#f3f4f6',
     margin: '0 0 6px',
     letterSpacing: '-0.5px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   subheading: {
     fontSize: '14px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     margin: 0,
   },
   newBtn: {
     display: 'inline-block',
     padding: '12px 24px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     borderRadius: '9px',
     fontSize: '14px',
     fontWeight: '700',
     textDecoration: 'none',
-    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    boxShadow: '0 4px 14px rgba(139, 47, 232, 0.4)',
     whiteSpace: 'nowrap',
   },
   newBtnDisabled: {
@@ -532,24 +530,24 @@ const e: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     color: '#f3f4f6',
     margin: '0 0 10px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   body: {
     fontSize: '14px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.65',
     margin: '0 0 28px',
   },
   cta: {
     display: 'inline-block',
     padding: '12px 28px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     borderRadius: '9px',
     fontSize: '14px',
     fontWeight: '700',
     textDecoration: 'none',
-    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    boxShadow: '0 4px 14px rgba(139, 47, 232, 0.4)',
     marginBottom: '32px',
   },
   ctaDisabled: {
@@ -577,7 +575,7 @@ const e: Record<string, React.CSSProperties> = {
 
 const c: Record<string, React.CSSProperties> = {
   card: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '14px',
     overflow: 'hidden',
@@ -615,7 +613,7 @@ const c: Record<string, React.CSSProperties> = {
   imagePlaceholder: {
     width: '100%',
     height: '180px',
-    background: 'linear-gradient(135deg, rgba(147,51,234,0.12) 0%, rgba(124,58,237,0.06) 100%)',
+    background: 'linear-gradient(135deg, rgba(139,47,232,0.12) 0%, rgba(124,58,237,0.06) 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -691,7 +689,7 @@ const c: Record<string, React.CSSProperties> = {
   },
   stat: {
     fontSize: '12px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontWeight: '500',
   },
   statDot: {

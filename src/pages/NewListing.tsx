@@ -460,8 +460,8 @@ function GeneratingState() {
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     padding: '40px 24px 80px',
     color: '#f3f4f6',
   },
@@ -498,7 +498,7 @@ const s: Record<string, React.CSSProperties> = {
   backLink: {
     display: 'inline-block',
     fontSize: '14px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     textDecoration: 'none',
     marginBottom: '16px',
   },
@@ -511,13 +511,13 @@ const s: Record<string, React.CSSProperties> = {
   },
   subheading: {
     fontSize: '15px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     margin: 0,
   },
 
   // Sections — padding handled by .form-section-pad CSS class
   section: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '12px',
     marginBottom: '20px',
@@ -623,7 +623,7 @@ const s: Record<string, React.CSSProperties> = {
     background: '#13131a',
     border: '1px solid #3a3a4a',
     borderRadius: '20px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -731,7 +731,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   generateBtn: {
     padding: '14px 32px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     border: 'none',
     borderRadius: '10px',
@@ -739,7 +739,7 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     cursor: 'pointer',
     letterSpacing: '0.2px',
-    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    boxShadow: '0 4px 14px rgba(139, 47, 232, 0.4)',
   },
   generateBtnDisabled: {
     background: '#2e2e3a',
@@ -752,7 +752,7 @@ const s: Record<string, React.CSSProperties> = {
 const gs: Record<string, React.CSSProperties> = {
   card: {
     marginTop: '32px',
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '12px',
     padding: '28px 32px',
@@ -776,7 +776,7 @@ const gs: Record<string, React.CSSProperties> = {
   },
   message: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     margin: 0,
     minHeight: '18px',
   },
@@ -789,7 +789,7 @@ const gs: Record<string, React.CSSProperties> = {
   },
   fill: {
     height: '100%',
-    background: 'linear-gradient(90deg, #9333ea, #a855f7)',
+    background: 'linear-gradient(90deg, #8b2fe8, #a855f7)',
     borderRadius: '2px',
   },
   note: {

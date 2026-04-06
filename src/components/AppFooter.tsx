@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom'
+import Logo from './Logo'
 
 export default function AppFooter() {
   return (
     <footer style={s.footer}>
       <div style={s.inner}>
-        <div style={s.brand}>
-          <span style={s.sparkle}>✦</span>
-          <span style={s.name}>ListingIgnite</span>
-        </div>
+        <Logo size="sm" />
         <p style={s.copy}>© {new Date().getFullYear()} ListingIgnite. All rights reserved.</p>
         <div style={s.links}>
           <Link to="/privacy" style={s.link} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>

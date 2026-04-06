@@ -7,6 +7,7 @@ import EditListingModal from '../components/EditListingModal'
 import type { SavedListingData } from '../components/EditListingModal'
 import type { GeneratedOutputs } from '../lib/generateContent'
 import AppFooter from '../components/AppFooter'
+import Logo from '../components/Logo'
 
 interface ListingData {
   id: string
@@ -86,10 +87,7 @@ export default function ListingDetail() {
 
         {/* Nav */}
         <div style={s.nav}>
-          <div style={s.navBrand}>
-            <span style={s.navSparkle}>✦</span>
-            <span style={s.navTitle}>ListingIgnite</span>
-          </div>
+          <Logo />
           <Link to="/dashboard" style={s.backLink}>← Back to Dashboard</Link>
         </div>
 
@@ -184,8 +182,8 @@ export default function ListingDetail() {
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     color: '#f3f4f6',
     padding: '0 0 80px',
   },
@@ -207,7 +205,7 @@ const s: Record<string, React.CSSProperties> = {
   navTitle: { fontSize: '16px', fontWeight: '700', color: '#f3f4f6', letterSpacing: '-0.3px' },
   backLink: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     textDecoration: 'none',
     padding: '7px 16px',
     border: '1px solid #3a3a4a',
@@ -231,7 +229,7 @@ const s: Record<string, React.CSSProperties> = {
     textAlign: 'center',
   },
   errorText: { fontSize: '15px', color: '#fca5a5', margin: '0 0 20px' },
-  errorLink: { fontSize: '13px', color: '#9ca3af', textDecoration: 'none' },
+  errorLink: { fontSize: '13px', color: '#a0a8b8', textDecoration: 'none' },
   successToast: {
     background: 'rgba(34, 197, 94, 0.1)',
     border: '1px solid rgba(34, 197, 94, 0.3)',
@@ -243,7 +241,7 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '500',
   },
   headerCard: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '16px',
     overflow: 'hidden',
@@ -253,7 +251,7 @@ const s: Record<string, React.CSSProperties> = {
   headerImagePlaceholder: {
     width: '100%',
     height: '180px',
-    background: 'linear-gradient(135deg, rgba(147,51,234,0.15) 0%, rgba(124,58,237,0.08) 100%)',
+    background: 'linear-gradient(135deg, rgba(139,47,232,0.15) 0%, rgba(124,58,237,0.08) 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -284,7 +282,7 @@ const s: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '6px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -297,12 +295,12 @@ const s: Record<string, React.CSSProperties> = {
     color: '#f3f4f6',
     margin: '0 0 12px',
     letterSpacing: '-0.3px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   statsRow: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' },
   price: { fontSize: '20px', fontWeight: '700', color: '#a855f7', letterSpacing: '-0.3px' },
   statDivider: { color: '#3a3a4a', fontSize: '16px' },
-  stat: { fontSize: '14px', color: '#9ca3af', fontWeight: '500' },
+  stat: { fontSize: '14px', color: '#a0a8b8', fontWeight: '500' },
   featuresRow: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' },
   featurePill: {
     padding: '3px 10px',
@@ -315,7 +313,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   dateLabel: { fontSize: '12px', color: '#4b5563', margin: 0 },
   noOutputsBox: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '12px',
     padding: '32px',
@@ -345,6 +343,6 @@ const s: Record<string, React.CSSProperties> = {
   statusBadgeInactive: {
     background: 'rgba(75, 85, 99, 0.2)',
     border: '1px solid #3a3a4a',
-    color: '#9ca3af',
+    color: '#a0a8b8',
   },
 }

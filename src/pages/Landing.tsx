@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import Logo from '../components/Logo'
 
 const FEATURES = [
   {
@@ -84,10 +85,7 @@ export default function Landing() {
       {/* ── Nav ───────────────────────────────────────────────── */}
       <nav style={s.nav}>
         <div style={s.navInner}>
-          <div style={s.brand}>
-            <span style={s.brandSparkle}>✦</span>
-            <span style={s.brandName}>ListingIgnite</span>
-          </div>
+          <Logo />
           <Link to="/login" style={s.navSignIn}>Sign In</Link>
         </div>
       </nav>
@@ -221,10 +219,7 @@ export default function Landing() {
       {/* ── Footer ────────────────────────────────────────────── */}
       <footer style={s.footer}>
         <div style={s.footerInner}>
-          <div style={s.footerBrand}>
-            <span style={s.brandSparkle}>✦</span>
-            <span style={s.brandName}>ListingIgnite</span>
-          </div>
+          <Logo size="sm" />
           <p style={s.footerCopy}>© {new Date().getFullYear()} ListingIgnite. All rights reserved.</p>
           <div style={s.footerLinks}>
             <Link to="/privacy" style={s.footerLink} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
@@ -241,8 +236,8 @@ export default function Landing() {
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(160deg, #0f0f14 0%, #150e1f 60%, #0f0f14 100%)',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    background: 'linear-gradient(160deg, #0c0c12 0%, #150e1f 60%, #0c0c12 100%)',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     color: '#f3f4f6',
     overflowX: 'hidden',
   },
@@ -252,7 +247,7 @@ const s: Record<string, React.CSSProperties> = {
     position: 'sticky' as const,
     top: 0,
     zIndex: 100,
-    background: 'rgba(15, 15, 20, 0.85)',
+    background: 'rgba(12, 12, 18, 0.85)',
     backdropFilter: 'blur(12px)',
     borderBottom: '1px solid rgba(46, 46, 58, 0.6)',
   },
@@ -324,7 +319,7 @@ const s: Record<string, React.CSSProperties> = {
     lineHeight: '1.08',
     letterSpacing: '-2px',
     margin: '0 0 28px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   heroHeadlineAccent: {
     background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
@@ -333,7 +328,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   heroSub: {
     fontSize: '18px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.65',
     margin: '0 0 40px',
     maxWidth: '580px',
@@ -343,13 +338,13 @@ const s: Record<string, React.CSSProperties> = {
   heroCta: {
     display: 'inline-block',
     padding: '16px 36px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     borderRadius: '10px',
     fontSize: '16px',
     fontWeight: '700',
     textDecoration: 'none',
-    boxShadow: '0 8px 32px rgba(147, 51, 234, 0.45)',
+    boxShadow: '0 8px 32px rgba(139, 47, 232, 0.45)',
     letterSpacing: '-0.2px',
   },
   ctaStack: {
@@ -376,7 +371,7 @@ const s: Record<string, React.CSSProperties> = {
     transform: 'translateX(-50%)',
     width: '600px',
     height: '400px',
-    background: 'radial-gradient(ellipse at center, rgba(147,51,234,0.18) 0%, transparent 70%)',
+    background: 'radial-gradient(ellipse at center, rgba(139,47,232,0.18) 0%, transparent 70%)',
     pointerEvents: 'none',
     zIndex: 0,
   },
@@ -402,11 +397,11 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: '-1px',
     margin: '0 0 16px',
     lineHeight: '1.1',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   sectionSub: {
     fontSize: '16px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.6',
     margin: '0 0 52px',
     maxWidth: '540px',
@@ -438,14 +433,14 @@ const s: Record<string, React.CSSProperties> = {
     lineHeight: '1.35',
     letterSpacing: '-0.5px',
     margin: '0 0 20px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   problemAccent: {
     color: '#a855f7',
   },
   problemSub: {
     fontSize: '16px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.7',
     margin: 0,
   },
@@ -461,7 +456,7 @@ const s: Record<string, React.CSSProperties> = {
     gap: '24px',
   },
   featureCard: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '16px',
     padding: '36px 28px',
@@ -477,7 +472,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#f3f4f6',
     margin: '0 0 10px',
     letterSpacing: '-0.2px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   featureDesc: {
     fontSize: '14px',
@@ -500,7 +495,7 @@ const s: Record<string, React.CSSProperties> = {
   stepCard: {
     position: 'relative' as const,
     padding: '36px 32px',
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '14px',
     margin: '0 10px',
@@ -519,7 +514,7 @@ const s: Record<string, React.CSSProperties> = {
     margin: '0 0 10px',
     letterSpacing: '-0.2px',
     lineHeight: '1.3',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   stepDesc: {
     fontSize: '13px',
@@ -583,7 +578,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   faqA: {
     fontSize: '15px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.7',
     margin: '0 0 22px',
     paddingRight: '40px',
@@ -607,7 +602,7 @@ const s: Record<string, React.CSSProperties> = {
     transform: 'translateX(-50%)',
     width: '400px',
     height: '200px',
-    background: 'radial-gradient(ellipse at center, rgba(147,51,234,0.2) 0%, transparent 70%)',
+    background: 'radial-gradient(ellipse at center, rgba(139,47,232,0.2) 0%, transparent 70%)',
     pointerEvents: 'none',
     zIndex: 0,
   },
@@ -618,13 +613,13 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: '-1px',
     margin: '0 0 16px',
     lineHeight: '1.2',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     position: 'relative' as const,
     zIndex: 1,
   },
   ctaSub: {
     fontSize: '17px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     margin: '0 0 36px',
     lineHeight: '1.6',
     position: 'relative' as const,
@@ -633,13 +628,13 @@ const s: Record<string, React.CSSProperties> = {
   ctaBtn: {
     display: 'inline-block',
     padding: '16px 40px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     borderRadius: '10px',
     fontSize: '16px',
     fontWeight: '700',
     textDecoration: 'none',
-    boxShadow: '0 8px 32px rgba(147, 51, 234, 0.45)',
+    boxShadow: '0 8px 32px rgba(139, 47, 232, 0.45)',
     position: 'relative' as const,
     zIndex: 1,
   },

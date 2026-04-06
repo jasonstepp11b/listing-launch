@@ -23,7 +23,7 @@ const s: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
   },
   sparkle: {
     fontSize: '32px',

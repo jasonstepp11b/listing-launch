@@ -255,12 +255,12 @@ const s: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
     padding: '24px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   card: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '16px',
     padding: '48px 40px',
@@ -288,7 +288,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   subheading: {
     fontSize: '15px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.6',
     margin: '0 0 28px',
   },
@@ -375,7 +375,7 @@ const s: Record<string, React.CSSProperties> = {
   submitBtn: {
     width: '100%',
     padding: '13px 20px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
@@ -384,7 +384,7 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
-    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    boxShadow: '0 4px 14px rgba(139, 47, 232, 0.4)',
     marginTop: '4px',
   },
   submitBtnLoading: {
@@ -396,7 +396,7 @@ const s: Record<string, React.CSSProperties> = {
   toggle: {
     marginTop: '20px',
     fontSize: '14px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
   },
   textBtn: {
     background: 'none',

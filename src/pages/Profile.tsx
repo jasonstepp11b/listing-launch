@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import AppFooter from '../components/AppFooter'
+import Logo from '../components/Logo'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
@@ -171,10 +172,7 @@ export default function Profile() {
 
         {/* Nav */}
         <div style={s.nav}>
-          <div style={s.navBrand}>
-            <span style={s.navSparkle}>✦</span>
-            <span style={s.navTitle}>ListingIgnite</span>
-          </div>
+          <Logo />
           <Link to="/dashboard" style={s.backLink}>← Dashboard</Link>
         </div>
 
@@ -402,8 +400,8 @@ export default function Profile() {
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     color: '#f3f4f6',
     padding: '0 0 80px',
   },
@@ -427,7 +425,7 @@ const s: Record<string, React.CSSProperties> = {
   navTitle: { fontSize: '16px', fontWeight: '700', color: '#f3f4f6', letterSpacing: '-0.3px' },
   backLink: {
     fontSize: '13px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     textDecoration: 'none',
     padding: '7px 16px',
     border: '1px solid #3a3a4a',
@@ -455,7 +453,7 @@ const s: Record<string, React.CSSProperties> = {
     width: '80px',
     height: '80px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -517,9 +515,9 @@ const s: Record<string, React.CSSProperties> = {
     color: '#f3f4f6',
     margin: '0 0 4px',
     letterSpacing: '-0.4px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
-  subheading: { fontSize: '14px', color: '#9ca3af', margin: 0 },
+  subheading: { fontSize: '14px', color: '#a0a8b8', margin: 0 },
 
   // Toast
   successToast: {
@@ -546,7 +544,7 @@ const s: Record<string, React.CSSProperties> = {
 
   // Cards
   card: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '14px',
     marginBottom: '20px',
@@ -561,7 +559,7 @@ const s: Record<string, React.CSSProperties> = {
     margin: 0,
     padding: '16px 24px',
     borderBottom: '1px solid #2e2e3a',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
 
   // Rows
@@ -615,7 +613,7 @@ const s: Record<string, React.CSSProperties> = {
   inlineActions: { display: 'flex', gap: '8px' },
   saveBtn: {
     padding: '8px 20px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     border: 'none',
     borderRadius: '7px',
@@ -623,7 +621,7 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '600',
     cursor: 'pointer',
     fontFamily: 'inherit',
-    boxShadow: '0 2px 8px rgba(147, 51, 234, 0.35)',
+    boxShadow: '0 2px 8px rgba(139, 47, 232, 0.35)',
   },
   saveBtnDisabled: {
     background: '#2e2e3a',
@@ -636,7 +634,7 @@ const s: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '7px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -647,7 +645,7 @@ const s: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '6px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '12px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -670,8 +668,8 @@ const s: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(239, 68, 68, 0.25)',
   },
   creditNumber: { fontSize: '18px', fontWeight: '700', color: '#c084fc', letterSpacing: '-0.3px' },
-  creditLabel: { fontSize: '13px', color: '#9ca3af' },
-  creditNote: { fontSize: '13px', color: '#9ca3af', margin: '0', padding: '14px 24px', lineHeight: '1.55' },
+  creditLabel: { fontSize: '13px', color: '#a0a8b8' },
+  creditNote: { fontSize: '13px', color: '#a0a8b8', margin: '0', padding: '14px 24px', lineHeight: '1.55' },
 
   // Subscription
   planBadge: {
@@ -686,7 +684,7 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: '0.2px',
   },
   featureList: { margin: 0, padding: '0 0 0 16px', listStyle: 'disc' },
-  featureItem: { fontSize: '14px', color: '#9ca3af', marginBottom: '4px', lineHeight: '1.5' },
+  featureItem: { fontSize: '14px', color: '#a0a8b8', marginBottom: '4px', lineHeight: '1.5' },
   upgradeRow: {
     display: 'flex',
     alignItems: 'center',

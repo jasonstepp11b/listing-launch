@@ -9,6 +9,7 @@ import ListingDetail from './pages/ListingDetail'
 import Profile from './pages/Profile'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Terms from './pages/Terms'
+import StyleGuide from './pages/StyleGuide'
 
 // Authenticated users go straight to /dashboard; everyone else sees the landing page.
 function RootRoute() {
@@ -59,6 +60,7 @@ export default function App() {
           />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
+          {import.meta.env.DEV && <Route path="/style-guide" element={<StyleGuide />} />}
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -538,7 +538,7 @@ const m: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     color: '#f3f4f6',
     margin: '0 0 3px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     letterSpacing: '-0.3px',
   },
   subtitle: {
@@ -551,7 +551,7 @@ const m: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '6px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '14px',
     cursor: 'pointer',
     fontFamily: 'inherit',
@@ -588,7 +588,7 @@ const m: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '8px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
@@ -596,14 +596,14 @@ const m: Record<string, React.CSSProperties> = {
   },
   saveBtn: {
     padding: '10px 28px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
     fontSize: '14px',
     fontWeight: '700',
     cursor: 'pointer',
-    boxShadow: '0 4px 14px rgba(147,51,234,0.4)',
+    boxShadow: '0 4px 14px rgba(139,47,232,0.4)',
     fontFamily: 'inherit',
   },
   saveBtnDisabled: {
@@ -650,7 +650,7 @@ const m: Record<string, React.CSSProperties> = {
 
 const f: Record<string, React.CSSProperties> = {
   section: {
-    background: '#1c1c24',
+    background: '#1a1a22',
     border: '1px solid #2e2e3a',
     borderRadius: '10px',
     marginBottom: '16px',
@@ -664,7 +664,7 @@ const f: Record<string, React.CSSProperties> = {
     margin: '0 0 18px',
     paddingBottom: '10px',
     borderBottom: '1px solid #2e2e3a',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   field: { marginBottom: '18px' },
   label: {
@@ -733,7 +733,7 @@ const f: Record<string, React.CSSProperties> = {
     background: '#13131a',
     border: '1px solid #3a3a4a',
     borderRadius: '20px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '13px',
     fontWeight: '500',
     cursor: 'pointer',
@@ -813,7 +813,7 @@ const f: Record<string, React.CSSProperties> = {
   statusBadgeInactive: {
     background: 'rgba(75, 85, 99, 0.2)',
     border: '1px solid #3a3a4a',
-    color: '#9ca3af',
+    color: '#a0a8b8',
   },
   statusActions: {
     display: 'flex',
@@ -825,7 +825,7 @@ const f: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '6px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     fontSize: '12px',
     fontWeight: '500',
     cursor: 'pointer',

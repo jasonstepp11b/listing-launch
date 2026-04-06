@@ -136,9 +136,9 @@ function Section({ title, children, last }: { title: string; children: React.Rea
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f0f14 0%, #1a1025 100%)',
+    background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
     padding: '48px 24px 80px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   container: {
     maxWidth: '760px',
@@ -164,7 +164,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   pageTitle: {
     fontSize: '36px',
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#f3f4f6',
     margin: '0 0 8px',
     letterSpacing: '-0.5px',
@@ -200,7 +200,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   sectionBody: {
     fontSize: '15px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.7',
   },
   list: {

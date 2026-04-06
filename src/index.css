@@ -11,8 +11,8 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --heading: 'Plus Jakarta Sans', system-ui, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -32,7 +32,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
+    --text: #a0a8b8;
     --text-h: #f3f4f6;
     --bg: #16171d;
     --border: #2e303a;
@@ -56,6 +56,15 @@
 
 body {
   margin: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+}
+
+.font-serif {
+  font-family: 'Instrument Serif', Georgia, serif;
 }
 
 /* Responsive grid helpers used by NewListing form */
@@ -92,7 +101,7 @@ body {
   gap: 16px;
   padding: 28px 32px 24px;
   border-bottom: 1px solid #2e2e3a;
-  background: linear-gradient(135deg, rgba(147,51,234,0.12) 0%, rgba(124,58,237,0.06) 100%);
+  background: linear-gradient(135deg, rgba(139,47,232,0.12) 0%, rgba(124,58,237,0.06) 100%);
 }
 @media (max-width: 600px) {
   .output-tab-bar { padding: 0 16px; }

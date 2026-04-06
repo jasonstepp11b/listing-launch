@@ -75,14 +75,14 @@ export default function PaywallBanner() {
 
 const s: Record<string, React.CSSProperties> = {
   banner: {
-    background: 'linear-gradient(135deg, rgba(147,51,234,0.12) 0%, rgba(124,58,237,0.06) 100%)',
+    background: 'linear-gradient(135deg, rgba(139,47,232,0.12) 0%, rgba(124,58,237,0.06) 100%)',
     border: '1px solid rgba(168, 85, 247, 0.35)',
     borderRadius: '14px',
     padding: '40px 32px 32px',
     textAlign: 'center',
     marginTop: '32px',
     marginBottom: '32px',
-    fontFamily: 'system-ui, "Segoe UI", Roboto, sans-serif',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
   },
   icon: {
     fontSize: '32px',
@@ -98,7 +98,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   body: {
     fontSize: '15px',
-    color: '#9ca3af',
+    color: '#a0a8b8',
     lineHeight: '1.6',
     margin: '0 0 28px',
     maxWidth: '420px',
@@ -128,7 +128,7 @@ const s: Record<string, React.CSSProperties> = {
   joinBtn: {
     width: '100%',
     padding: '12px 24px',
-    background: 'linear-gradient(135deg, #9333ea, #7c3aed)',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
@@ -136,7 +136,7 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     cursor: 'pointer',
     fontFamily: 'inherit',
-    boxShadow: '0 4px 14px rgba(147, 51, 234, 0.4)',
+    boxShadow: '0 4px 14px rgba(139, 47, 232, 0.4)',
     boxSizing: 'border-box' as const,
   },
   joinBtnLoading: {
