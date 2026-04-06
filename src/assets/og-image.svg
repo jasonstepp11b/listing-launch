@@ -85,6 +85,18 @@
     <tspan x="600" dy="28">MLS copy, social posts, email blast, and more. In seconds.</tspan>
   </text>
 
+  <!-- CTA pill button -->
+  <rect x="500" y="508" width="200" height="38" rx="19" fill="url(#logoGrad)"/>
+  <text
+    x="600" y="532"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
+    font-size="15"
+    font-weight="700"
+    fill="white"
+    letter-spacing="0"
+  >Get Started Free →</text>
+
   <!-- Domain footer -->
   <text
     x="600" y="578"
