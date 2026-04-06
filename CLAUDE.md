@@ -8,6 +8,8 @@ paste/fill in a property listing → instantly get everything needed to market i
 Agents currently spend 1–3 hours per listing creating marketing content manually.
 This app eliminates that entirely.
 
+**Tagline: "List it. Ignite it."**
+
 ---
 
 ## Tech Stack
