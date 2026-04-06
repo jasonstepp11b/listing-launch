@@ -8,6 +8,7 @@ export default function AppFooter() {
         <Logo size="sm" />
         <p style={s.copy}>© {new Date().getFullYear()} ListingIgnite. All rights reserved.</p>
         <div style={s.links}>
+          <Link to="/blog" style={s.link}>Blog</Link>
           <Link to="/privacy" style={s.link} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
           <Link to="/terms" style={s.link} target="_blank" rel="noopener noreferrer">Terms of Service</Link>
         </div>

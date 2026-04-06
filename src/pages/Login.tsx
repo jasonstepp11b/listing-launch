@@ -232,6 +232,8 @@ export default function Login() {
           <Link to="/terms" style={s.fineLink} target="_blank" rel="noopener noreferrer">Terms of Service</Link>
           {' '}and{' '}
           <Link to="/privacy" style={s.fineLink} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+          {' '}·{' '}
+          <Link to="/blog" style={s.fineLink}>Blog</Link>
         </p>
       </div>
     </div>

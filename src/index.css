@@ -134,6 +134,38 @@ button, input, textarea, select {
   .landing-cta-headline { font-size: 28px !important; }
 }
 
+/* Blog post layout: two-column on desktop, stacked on mobile */
+.blog-post-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 48px;
+  align-items: start;
+}
+.blog-post-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 860px) {
+  .blog-post-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+/* Responsive blog card grid */
+.blog-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 960px) {
+  .blog-card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 580px) {
+  .blog-card-grid { grid-template-columns: 1fr; }
+}
+
 /* Responsive card grid used by Dashboard */
 .card-grid {
   display: grid;

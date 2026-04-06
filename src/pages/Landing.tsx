@@ -86,7 +86,10 @@ export default function Landing() {
       <nav style={s.nav}>
         <div style={s.navInner}>
           <Logo />
-          <Link to="/login" style={s.navSignIn}>Sign In</Link>
+          <div style={s.navRight}>
+            <Link to="/blog" style={s.navBlogLink}>Blog</Link>
+            <Link to="/login" style={s.navSignIn}>Sign In</Link>
+          </div>
         </div>
       </nav>
 
@@ -222,6 +225,7 @@ export default function Landing() {
           <Logo size="sm" />
           <p style={s.footerCopy}>© {new Date().getFullYear()} ListingIgnite. All rights reserved.</p>
           <div style={s.footerLinks}>
+            <Link to="/blog" style={s.footerLink}>Blog</Link>
             <Link to="/privacy" style={s.footerLink} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>
             <Link to="/terms" style={s.footerLink} target="_blank" rel="noopener noreferrer">Terms of Service</Link>
             <Link to="/login" style={s.footerLink}>Sign In</Link>
@@ -274,6 +278,17 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     color: '#f3f4f6',
     letterSpacing: '-0.3px',
+  },
+  navRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  navBlogLink: {
+    fontSize: '14px',
+    color: '#a0a8b8',
+    textDecoration: 'none',
+    fontWeight: '500',
   },
   navSignIn: {
     padding: '8px 20px',
