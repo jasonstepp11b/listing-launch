@@ -26,6 +26,9 @@ export interface GeneratedOutputs {
   flyer_copy: string
   video_script: string
   seo_landing_page: string
+  youtube_title: string
+  youtube_description: string
+  youtube_tags: string[]
 }
 
 export async function generateContent(listing: ListingInput): Promise<GeneratedOutputs> {

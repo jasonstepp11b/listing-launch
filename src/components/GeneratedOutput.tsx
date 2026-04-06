@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import type { GeneratedOutputs } from '../lib/generateContent'
 
+type CopyState = 'idle' | 'copied' | 'fallback'
+
 interface Props {
   outputs: GeneratedOutputs
   noTopMargin?: boolean
@@ -91,11 +93,14 @@ export default function GeneratedOutput({ outputs, noTopMargin }: Props) {
         )}
 
         {activeTab === 'video' && (
-          <Section
-            title="Video Script"
-            hint="60–90 second script with scene directions. Suitable for Reels, TikTok, or YouTube."
-            content={outputs.video_script}
-          />
+          <div>
+            <Section
+              title="Video Script"
+              hint="60–90 second script with scene directions. Suitable for Reels, TikTok, or YouTube."
+              content={outputs.video_script}
+            />
+            <YouTubePackage outputs={outputs} />
+          </div>
         )}
 
         {activeTab === 'seo' && (
@@ -111,9 +116,107 @@ export default function GeneratedOutput({ outputs, noTopMargin }: Props) {
   )
 }
 
-// ─── Section ─────────────────────────────────────────────────────────────────
+// ─── YouTube Package ──────────────────────────────────────────────────────────
 
-type CopyState = 'idle' | 'copied' | 'fallback'
+function YouTubePackage({ outputs }: { outputs: GeneratedOutputs }) {
+  const [titleCopy, setTitleCopy] = useState<CopyState>('idle')
+  const [descCopy, setDescCopy] = useState<CopyState>('idle')
+  const [tagsCopy, setTagsCopy] = useState<CopyState>('idle')
+
+  async function copy(text: string, set: (s: CopyState) => void) {
+    try {
+      await navigator.clipboard.writeText(text)
+      set('copied')
+      setTimeout(() => set('idle'), 2000)
+    } catch {
+      set('fallback')
+      setTimeout(() => set('idle'), 3000)
+    }
+  }
+
+  const tagsString = (outputs.youtube_tags ?? []).join(', ')
+
+  return (
+    <div style={yt.wrapper}>
+      {/* Divider with label */}
+      <div style={yt.divider}>
+        <div style={yt.dividerLine} />
+        <span style={yt.dividerLabel}>YouTube Package</span>
+        <div style={yt.dividerLine} />
+      </div>
+
+      <p style={yt.intro}>
+        Optimized title, description, and tags — ready to paste when uploading to YouTube.
+      </p>
+
+      {/* YouTube Title */}
+      <div style={yt.block}>
+        <div style={ss.sectionHeader}>
+          <div>
+            <h3 style={ss.title}>YouTube Title</h3>
+            <p style={ss.hint}>60-character max — keyword-rich for search.</p>
+          </div>
+          <button
+            style={titleCopy === 'copied' ? { ...ss.copyBtn, ...ss.copyBtnDone } : ss.copyBtn}
+            onClick={() => copy(outputs.youtube_title ?? '', setTitleCopy)}
+            type="button"
+          >
+            {titleCopy === 'copied' ? '✓ Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div style={{ ...ss.content, ...yt.titleContent }}>
+          {outputs.youtube_title}
+        </div>
+      </div>
+
+      {/* YouTube Description */}
+      <div style={yt.block}>
+        <div style={ss.sectionHeader}>
+          <div>
+            <h3 style={ss.title}>YouTube Description</h3>
+            <p style={ss.hint}>Includes property highlights, CTA, and hashtags.</p>
+          </div>
+          <button
+            style={descCopy === 'copied' ? { ...ss.copyBtn, ...ss.copyBtnDone } : ss.copyBtn}
+            onClick={() => copy(outputs.youtube_description ?? '', setDescCopy)}
+            type="button"
+          >
+            {descCopy === 'copied' ? '✓ Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div style={ss.content}>
+          {(outputs.youtube_description ?? '').split('\n').flatMap((line, i, arr) =>
+            i < arr.length - 1 ? [line, <br key={i} />] : [line]
+          )}
+        </div>
+      </div>
+
+      {/* YouTube Tags */}
+      <div style={{ ...yt.block, marginBottom: 0 }}>
+        <div style={ss.sectionHeader}>
+          <div>
+            <h3 style={ss.title}>YouTube Tags</h3>
+            <p style={ss.hint}>Copy all as a comma-separated list.</p>
+          </div>
+          <button
+            style={tagsCopy === 'copied' ? { ...ss.copyBtn, ...ss.copyBtnDone } : ss.copyBtn}
+            onClick={() => copy(tagsString, setTagsCopy)}
+            type="button"
+          >
+            {tagsCopy === 'copied' ? '✓ Copied!' : 'Copy All Tags'}
+          </button>
+        </div>
+        <div style={yt.tagList}>
+          {(outputs.youtube_tags ?? []).map((tag, i) => (
+            <span key={i} style={yt.tag}>{tag}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Section ─────────────────────────────────────────────────────────────────
 
 interface SectionProps {
   title: string
@@ -309,5 +412,59 @@ const ss: Record<string, React.CSSProperties> = {
     margin: 0,
     fontFamily: 'inherit',
     overflowX: 'auto',
+  },
+}
+
+const yt: Record<string, React.CSSProperties> = {
+  wrapper: {
+    marginTop: '8px',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    margin: '4px 0 20px',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: '#2e2e3a',
+  },
+  dividerLabel: {
+    fontSize: '11px',
+    fontWeight: '700',
+    color: '#a855f7',
+    letterSpacing: '1px',
+    textTransform: 'uppercase',
+    whiteSpace: 'nowrap',
+  },
+  intro: {
+    fontSize: '13px',
+    color: '#6b7280',
+    margin: '0 0 20px',
+  },
+  block: {
+    marginBottom: '24px',
+  },
+  titleContent: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#f3f4f6',
+    lineHeight: '1.5',
+  },
+  tagList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginTop: '4px',
+  },
+  tag: {
+    padding: '4px 10px',
+    background: 'rgba(168, 85, 247, 0.10)',
+    border: '1px solid rgba(168, 85, 247, 0.25)',
+    borderRadius: '20px',
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#c084fc',
   },
 }

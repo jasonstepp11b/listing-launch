@@ -69,6 +69,9 @@ export async function saveListing(
       flyer_copy: outputs.flyer_copy,
       video_script: outputs.video_script,
       seo_landing_page: outputs.seo_landing_page,
+      youtube_title: outputs.youtube_title,
+      youtube_description: outputs.youtube_description,
+      youtube_tags: outputs.youtube_tags,
     })
 
   if (outputError) throw new Error(`Failed to save outputs: ${outputError.message}`)

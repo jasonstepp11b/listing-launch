@@ -26,7 +26,7 @@ const FEATURES = [
   {
     icon: '🎬',
     title: 'Video Script',
-    desc: 'A 60–90 second script with scene directions for Reels, TikTok, or YouTube.',
+    desc: 'A 60–90 second script for Reels, TikTok, or YouTube — plus an optimized YouTube title, description, and tags.',
   },
   {
     icon: '🔍',

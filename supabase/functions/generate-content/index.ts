@@ -50,6 +50,9 @@ interface GeneratedOutputs {
   flyer_copy: string
   video_script: string
   seo_landing_page: string
+  youtube_title: string
+  youtube_description: string
+  youtube_tags: string[]
 }
 
 const REQUIRED_KEYS: (keyof GeneratedOutputs)[] = [
@@ -61,6 +64,9 @@ const REQUIRED_KEYS: (keyof GeneratedOutputs)[] = [
   'flyer_copy',
   'video_script',
   'seo_landing_page',
+  'youtube_title',
+  'youtube_description',
+  'youtube_tags',
 ]
 
 function buildPrompt(listing: ListingInput): string {
@@ -70,7 +76,7 @@ function buildPrompt(listing: ListingInput): string {
 
   const targetBuyerLine = listing.targetBuyer || 'General / Any'
 
-  return `You are an expert real estate copywriter. Using the property details below, generate compelling marketing content across all 6 formats.
+  return `You are an expert real estate copywriter. Using the property details below, generate compelling marketing content across all 9 formats.
 
 PROPERTY DETAILS:
 - Address: ${listing.address}
@@ -84,7 +90,7 @@ PROPERTY DETAILS:
 - Target Buyer: ${targetBuyerLine}
 - Additional Notes: ${listing.additionalNotes || 'None provided'}
 
-Generate all 6 pieces of marketing content and return them as a single valid JSON object with exactly these keys:
+Generate all 9 pieces of marketing content and return them as a single valid JSON object with exactly these keys:
 
 {
   "mls_description": "Optimized MLS property description (150–300 words). Professional tone, highlights key features and lifestyle benefits. Write in 2–3 distinct paragraphs separated by blank lines (\\n\\n). Do NOT write it as one continuous block of text. Use plain ASCII hyphens and standard numerals — no typographic dashes, no special Unicode spacing characters.",
@@ -94,8 +100,13 @@ Generate all 6 pieces of marketing content and return them as a single valid JSO
   "email_blast": "Email to a buyer list. Include a subject line on the first line formatted as 'Subject: ...', then the full email body (150–250 words). Warm, informative, clear CTA.",
   "flyer_copy": "Printable property flyer. Start with a bold headline, then 4–6 bullet-point highlights, then a closing tagline and agent CTA placeholder.",
   "video_script": "Short-form video script (60–90 seconds when read aloud). Include scene directions in [brackets]. Suitable for YouTube, Reels, or TikTok.",
-  "seo_landing_page": "SEO landing page copy. Include: Headline, Subheadline, 2–3 paragraph body copy, and a CTA button label. Optimized for search with natural keyword use."
+  "seo_landing_page": "SEO landing page copy. Include: Headline, Subheadline, 2–3 paragraph body copy, and a CTA button label. Optimized for search with natural keyword use.",
+  "youtube_title": "SEO-optimized YouTube video title. Maximum 60 characters. Compelling and keyword-rich for real estate search. Do not use quotes or special characters.",
+  "youtube_description": "Full YouTube video description (150–300 words). Start with a compelling opening paragraph about the property. Follow with key property highlights. Include a call to action for viewers to contact the listing agent. End with 8–12 relevant hashtags on their own line.",
+  "youtube_tags": ["tag1", "tag2", "..."]
 }
+
+For youtube_tags: provide an array of 10–15 strings. Include the property type, city/neighborhood, bedroom count (e.g. '3 bedroom home'), price range (e.g. 'homes under 500k'), key features, and general real estate keywords (e.g. 'real estate', 'homes for sale', 'property tour'). Each tag should be lowercase, no hashtag symbol.
 
 Return ONLY the raw JSON object. No markdown, no code fences, no explanation — just the JSON.`
 }
@@ -213,7 +224,7 @@ serve(async (req: Request) => {
     }
   }
 
-  console.log('[generate-content] Success — returning all 6 outputs')
+  console.log('[generate-content] Success — returning all 9 outputs')
   return new Response(
     JSON.stringify(parsed),
     { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
