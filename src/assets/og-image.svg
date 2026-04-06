@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0c0c12"/>
+      <stop offset="60%" stop-color="#110d1a"/>
+      <stop offset="100%" stop-color="#150e1f"/>
+    </linearGradient>
+
+    <!-- Logo icon gradient -->
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b2fe8"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+
+    <!-- Central purple glow behind logo -->
+    <radialGradient id="centerGlow" cx="600" cy="240" r="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#8b2fe8" stop-opacity="0.20"/>
+      <stop offset="55%"  stop-color="#8b2fe8" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#8b2fe8" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Secondary accent glow, bottom-right -->
+    <radialGradient id="accentGlow" cx="960" cy="560" r="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#7c3aed" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Glow layers -->
+  <rect width="1200" height="630" fill="url(#centerGlow)"/>
+  <rect width="1200" height="630" fill="url(#accentGlow)"/>
+
+  <!-- Subtle outer border -->
+  <rect width="1200" height="630" fill="none" stroke="#2e2e3a" stroke-width="1"/>
+
+  <!-- Logo icon: original 52×52 viewBox, scaled to 100×100, centered at x=600 -->
+  <!-- scale = 100/52 ≈ 1.923 | placed at x=550 (600-50), y=148 -->
+  <g transform="translate(550, 148) scale(1.923)">
+    <rect width="52" height="52" rx="14" fill="url(#logoGrad)"/>
+    <path d="M16 42C16 42 13 35 13 28C13 18 19 11 26 8C26 8 24.5 15 28 18C31.5 21 37 18 37 18C37 18 40 23 37 30C35 34 31 37.5 28 39.5C29 36 28 33 26 31C22.5 34 20.5 40 16 42Z" fill="white" fill-opacity="0.95"/>
+    <path d="M26 31C24.5 33 23.5 35.5 23 38C24.5 37.2 25.8 35.8 27 34C26.7 33 26.4 32 26 31Z" fill="white" fill-opacity="0.6"/>
+  </g>
+
+  <!-- Wordmark: "Listing" (muted weight 500) + "Ignite" (purple weight 800) -->
+  <!-- Logo bottom: 148 + 100 = 248. Gap 36px. Text top ≈ 284. font-size=80, baseline ≈ 284+62 = 346 -->
+  <text
+    x="600" y="346"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
+    font-size="80"
+    letter-spacing="-1.5"
+  >
+    <tspan font-weight="500" fill="#a0a8b8">Listing</tspan><tspan font-weight="800" fill="#a855f7">Ignite</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <!-- Gap ~26px from wordmark baseline: 346+26+24 = 396 (font-size 32, ascender ~24) -->
+  <text
+    x="600" y="396"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
+    font-size="30"
+    font-weight="600"
+    fill="#a855f7"
+    letter-spacing="-0.3"
+  >List it. Ignite it.</text>
+
+  <!-- Thin separator -->
+  <rect x="554" y="420" width="92" height="1" fill="#2e2e3a"/>
+
+  <!-- Description — two lines to stay within canvas width -->
+  <text
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
+    font-size="19"
+    font-weight="400"
+    fill="#6b7280"
+    letter-spacing="0"
+  >
+    <tspan x="600" y="450">AI-generated marketing content for every listing —</tspan>
+    <tspan x="600" dy="28">MLS copy, social posts, email blast, and more. In seconds.</tspan>
+  </text>
+
+  <!-- Domain footer -->
+  <text
+    x="600" y="578"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif"
+    font-size="14"
+    font-weight="400"
+    fill="#3a3a4a"
+    letter-spacing="0.8"
+  >listingignite.com</text>
+</svg>
