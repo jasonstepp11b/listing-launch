@@ -191,7 +191,12 @@ export default function Login() {
           </div>
 
           <div style={s.field}>
-            <label style={s.label}>Password {isSignup && <span style={s.labelHint}>min. 8 characters</span>}</label>
+            <div style={s.labelRow}>
+              <label style={s.label}>Password {isSignup && <span style={s.labelHint}>min. 8 characters</span>}</label>
+              {!isSignup && (
+                <Link to="/forgot-password" style={s.forgotLink} tabIndex={-1}>Forgot password?</Link>
+              )}
+            </div>
             <input
               style={s.input}
               type="password"
@@ -347,14 +352,25 @@ const s: Record<string, React.CSSProperties> = {
     marginBottom: '14px',
     textAlign: 'left',
   },
+  labelRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '6px',
+  },
   label: {
     display: 'block',
     fontSize: '12px',
     fontWeight: '600',
     color: '#d1d5db',
-    marginBottom: '6px',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
+  },
+  forgotLink: {
+    fontSize: '12px',
+    color: '#6b7280',
+    textDecoration: 'none',
+    fontWeight: '400',
   },
   labelHint: {
     fontWeight: '400',
