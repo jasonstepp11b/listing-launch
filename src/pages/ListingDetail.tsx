@@ -8,6 +8,7 @@ import type { SavedListingData } from '../components/EditListingModal'
 import type { GeneratedOutputs } from '../lib/generateContent'
 import AppFooter from '../components/AppFooter'
 import Logo from '../components/Logo'
+import FeedbackButton from '../components/FeedbackButton'
 
 interface ListingData {
   id: string
@@ -175,6 +176,7 @@ export default function ListingDetail() {
       </div>
 
       <AppFooter />
+      <FeedbackButton />
     </div>
   )
 }

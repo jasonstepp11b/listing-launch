@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import AppFooter from '../components/AppFooter'
 import Logo from '../components/Logo'
+import FeedbackButton from '../components/FeedbackButton'
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
@@ -393,6 +394,7 @@ export default function Profile() {
       </div>
 
       <AppFooter />
+      <FeedbackButton />
     </div>
   )
 }

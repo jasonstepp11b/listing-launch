@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import GeneratedOutput from '../components/GeneratedOutput'
 import PaywallBanner from '../components/PaywallBanner'
 import AppFooter from '../components/AppFooter'
+import FeedbackButton from '../components/FeedbackButton'
 
 const PROPERTY_TYPES = [
   'Single Family',
@@ -417,6 +418,7 @@ export default function NewListing() {
       </div>
 
       <AppFooter />
+      <FeedbackButton />
     </div>
   )
 }

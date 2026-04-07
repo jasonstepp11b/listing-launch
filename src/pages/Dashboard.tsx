@@ -7,6 +7,7 @@ import type { SavedListingData } from '../components/EditListingModal'
 import AppFooter from '../components/AppFooter'
 import PaywallBanner from '../components/PaywallBanner'
 import Logo from '../components/Logo'
+import FeedbackButton from '../components/FeedbackButton'
 
 interface Listing {
   id: string
@@ -203,6 +204,7 @@ export default function Dashboard() {
       )}
 
       <AppFooter />
+      <FeedbackButton />
     </div>
   )
 }
