@@ -26,19 +26,10 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'https://listingignite.com',
-  'https://www.listingignite.com',
-]
-
-function corsHeaders(req: Request): Record<string, string> {
-  const origin = req.headers.get('Origin') ?? ''
-  return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 interface EmailPayload {
@@ -49,17 +40,15 @@ interface EmailPayload {
 }
 
 serve(async (req: Request) => {
-  const cors = corsHeaders(req)
-
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: cors })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...cors, 'Content-Type': 'application/json' } },
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
 
@@ -69,7 +58,7 @@ serve(async (req: Request) => {
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid JSON body' }),
-      { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
 
@@ -80,7 +69,7 @@ serve(async (req: Request) => {
     const missing = ['to', 'subject', 'html'].filter(k => !payload[k as keyof EmailPayload])
     return new Response(
       JSON.stringify({ error: `Missing required fields: ${missing.join(', ')}` }),
-      { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
 
@@ -88,7 +77,7 @@ serve(async (req: Request) => {
   if (!resendApiKey) {
     return new Response(
       JSON.stringify({ error: 'Email service not configured' }),
-      { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
 
@@ -116,12 +105,12 @@ serve(async (req: Request) => {
     console.error('Resend error:', resendData)
     return new Response(
       JSON.stringify({ error: 'Failed to send email', detail: resendData }),
-      { status: resendRes.status, headers: { ...cors, 'Content-Type': 'application/json' } },
+      { status: resendRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
 
   return new Response(
     JSON.stringify({ success: true, id: resendData.id }),
-    { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } },
+    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   )
 })

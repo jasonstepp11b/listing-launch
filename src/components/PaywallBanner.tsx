@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { callEdgeFunction } from '../lib/edgeFunction'
 import { useAuth } from '../context/AuthContext'
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
@@ -14,6 +15,7 @@ export default function PaywallBanner() {
     if (!email.trim()) return
     setSubmitState('submitting')
 
+    // Save to Supabase waitlist — source of truth
     const { error } = await supabase.from('waitlist').insert({
       email: email.trim(),
       user_id: user?.id ?? null,
@@ -22,9 +24,41 @@ export default function PaywallBanner() {
     if (error && error.code !== '23505') {
       // 23505 = unique violation — already on the list, treat as success
       setSubmitState('error')
-    } else {
-      setSubmitState('success')
+      return
     }
+
+    // Also add to Kit — awaited but never blocks success state on failure
+    try {
+      console.log('[PaywallBanner] Fetching profile for Kit sync — user id:', user?.id)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user?.id ?? '')
+        .single()
+
+      if (profileError) {
+        console.warn('[PaywallBanner] Profile fetch failed (non-blocking):', profileError.message)
+      }
+
+      const fullName = profile?.full_name ?? ''
+      const firstName = fullName.split(' ')[0] ?? ''
+      console.log('[PaywallBanner] Calling add-to-kit — email:', email.trim(), '| firstName:', firstName)
+
+      const { data: kitData, error: kitError } = await callEdgeFunction('add-to-kit', {
+        email: email.trim(),
+        firstName,
+      })
+
+      if (kitError) {
+        console.error('[PaywallBanner] add-to-kit returned error (non-blocking):', kitError)
+      } else {
+        console.log('[PaywallBanner] add-to-kit success:', kitData)
+      }
+    } catch (err) {
+      console.error('[PaywallBanner] add-to-kit threw unexpectedly (non-blocking):', err)
+    }
+
+    setSubmitState('success')
   }
 
   return (
