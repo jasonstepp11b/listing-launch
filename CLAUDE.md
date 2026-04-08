@@ -19,7 +19,8 @@ This app eliminates that entirely.
 | Frontend | Vite + React + TypeScript |
 | Auth & Database | Supabase (OAuth via Google, PostgreSQL) |
 | AI Generation | Anthropic API (Claude) via Supabase Edge Function |
-| Email | Resend (via Supabase Edge Function + Supabase SMTP) |
+| Email (Transactional) | Resend (via Supabase Edge Function + Supabase SMTP) |
+| Email (Marketing) | Kit (ConvertKit) — waitlist subscribers synced via Edge Function |
 | Hosting | Vercel |
 | Domain | listingignite.com (registered via Spaceship) |
 | Business Email | Zoho Mail (jason@listingignite.com) |
@@ -132,6 +133,7 @@ Extends Supabase auth.users.
 - `email` (text)
 - `user_id` (uuid, nullable FK to profiles)
 - `created_at` (timestamp)
+- RLS policy: authenticated users can view their own waitlist entry
 
 ---
 
@@ -141,7 +143,7 @@ Extends Supabase auth.users.
 - Each generation (1 listing → all outputs) costs **1 credit**
 - Credits are only deducted after both the API call AND the Supabase save succeed — failed generations are never charged
 - After 0 credits, the generate button is disabled and a paywall banner is shown
-- Paywall banner includes a waitlist email capture form — submissions saved to the `waitlist` table
+- Paywall banner includes a waitlist email capture form — submissions saved to `waitlist` table AND synced to Kit
 - No real payment processing in MVP — just a "Coming Soon / Join Waitlist" CTA
 
 > ⚠️ **TODO — Pricing & Credit Model (Post-MVP)**
@@ -164,7 +166,7 @@ Extends Supabase auth.users.
 - Session is managed by Supabase client and persists across browser closes via localStorage
 - Protected routes redirect unauthenticated users to the login page
 - Authenticated users visiting `/` are redirected to `/dashboard`
-- Supabase redirect URLs include `https://listingignite.com/**`, `https://www.listingignite.com/**`, and `http://localhost:5173/**` (wildcards cover all routes including `/reset-password`)
+- Supabase redirect URLs include `https://listingignite.com/**`, `https://www.listingignite.com/**`, and `http://localhost:5173/**`
 - Google Cloud OAuth authorized redirect URIs include the Supabase callback URL, `https://listingignite.com`, and `https://www.listingignite.com`
 - Email confirmation is enabled — new email/password signups receive a confirmation email before they can log in
 - Google OAuth does not require email confirmation (Google already verified the email)
@@ -179,47 +181,53 @@ Extends Supabase auth.users.
 
 ## Email Infrastructure
 
-- **Provider:** Resend (resend.com) — account active and verified ✅
+### Resend (Transactional)
+- **Account:** Active and verified ✅
 - **Domain:** listingignite.com — verified in Resend via DNS records
-- **From address:** `noreply@listingignite.com` (configured in Supabase SMTP settings)
-- **API key:** stored as a Supabase Edge Function secret (`RESEND_API_KEY`) — never exposed client-side
-- **Edge Function:** `supabase/functions/send-email/index.ts` — accepts POST with `{ to, subject, html, replyTo? }` and sends via Resend
-- **Frontend helper:** `src/lib/edgeFunction.ts` — `callEdgeFunction(name, payload)` utility
-- **Planned email types:** feedback notifications to jason@listingignite.com, transactional emails to users, marketing emails to opted-in users and leads
-- **Important:** `send-email` Edge Function is deployed but NOT yet tested end-to-end — will be tested when feedback form is built
+- **From address:** `noreply@listingignite.com`
+- **API key:** stored as Supabase Edge Function secret (`RESEND_API_KEY`)
+- **Edge Function:** `supabase/functions/send-email/index.ts` — tested and working ✅
+- **CORS:** Uses `'Access-Control-Allow-Origin': '*'` — safe because JWT auth is required
+
+### Kit (ConvertKit) — Email Marketing
+- **Account:** Active ✅
+- **Form:** ListingIgnite Waitlist (Form ID: `9295798`)
+- **API version:** V3 (Legacy) — required for form subscriber API
+- **Edge Function:** `supabase/functions/add-to-kit/index.ts` — tested and working ✅
+- **Flow:** User joins waitlist → saved to Supabase `waitlist` table → added to Kit form via Edge Function
+- **Double opt-in:** Enabled in Kit — subscribers must confirm email before being added
+- **Kit confirmation email:** Customized with ListingIgnite branding and copy
+- **Secrets:** `KIT_API_KEY`, `KIT_API_SECRET`, `KIT_FORM_ID` stored in Supabase secrets
 
 ### Supabase Custom SMTP (Auth Emails)
-Supabase auth emails (confirmation, password reset) are sent via Resend using custom SMTP:
-- **Host:** smtp.resend.com
-- **Port:** 465
-- **Username:** resend
-- **Password:** Resend API key
-- **From:** noreply@listingignite.com
-- **Templates:** Custom branded HTML templates applied for both confirmation and password reset emails
+- Supabase auth emails sent via Resend SMTP
+- Host: smtp.resend.com, Port: 465
+- From: noreply@listingignite.com
+- Custom branded HTML templates for confirmation and password reset emails
 
 ### DNS Records (Spaceship)
-- **SPF:** Combined record — `v=spf1 include:zohomail.com include:amazonses.com ~all`
-- **DKIM:** Resend DKIM record (`resend._do`) + Zoho DKIM record (`zmail._dom`)
+- **SPF:** `v=spf1 include:zohomail.com include:amazonses.com ~all` (combined, single record)
+- **DKIM:** Resend (`resend._do`) + Zoho (`zmail._dom`)
 - **DMARC:** `v=DMARC1; p=none; rua=mailto:jason@listingignite.com` on `_dmarc` host
-- **MX:** Zoho Mail MX records for receiving email
+- **MX:** Zoho Mail records for receiving
 
 ---
 
 ## Supabase Edge Functions
 
-Edge Functions are server-side Deno functions that run on Supabase's infrastructure.
+Edge Functions are server-side Deno functions. All use `'Access-Control-Allow-Origin': '*'` for CORS.
 
 **Current Edge Functions:**
-- `send-email` — sends email via Resend API (deployed, untested end-to-end)
-- `generate-content` — calls Anthropic API server-side to generate all marketing outputs ✅
+- `send-email` — sends email via Resend API ✅ tested
+- `generate-content` — calls Anthropic API server-side ✅ tested
+- `add-to-kit` — adds subscriber to Kit waitlist form ✅ tested
 
 **Deploy commands:**
 ```bash
 supabase login
 supabase functions deploy generate-content --project-ref fmcnfutdyqmwtommnryx
 supabase functions deploy send-email --project-ref fmcnfutdyqmwtommnryx
-supabase secrets set ANTHROPIC_API_KEY=sk-ant-... --project-ref fmcnfutdyqmwtommnryx
-supabase secrets set RESEND_API_KEY=re_... --project-ref fmcnfutdyqmwtommnryx
+supabase functions deploy add-to-kit --project-ref fmcnfutdyqmwtommnryx
 supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 ```
 
@@ -233,20 +241,21 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 | `VITE_SUPABASE_URL` | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous/public key |
 
-> Note: `VITE_ANTHROPIC_API_KEY` has been removed — Anthropic API is server-side only via Edge Function.
-
 ### Supabase Edge Function Secrets
 | Secret | Description |
 |---|---|
 | `ANTHROPIC_API_KEY` | Anthropic API key — server-side only |
 | `RESEND_API_KEY` | Resend API key for sending email |
+| `KIT_API_KEY` | Kit V3 API key |
+| `KIT_API_SECRET` | Kit V3 API secret |
+| `KIT_FORM_ID` | Kit waitlist form ID (9295798) |
 
 ---
 
 ## Branding & Design
 
 ### Brand Files
-- `BRAND-VOICE.md` — brand voice guidelines, copy principles, tagline, on/off-brand examples
+- `BRAND-VOICE.md` — brand voice, copy principles, tagline, on/off-brand examples
 - `STYLE-GUIDE.md` — colors, typography, spacing, component styles
 - `src/pages/StyleGuide.tsx` — visual style guide at `/style-guide` (dev reference only)
 
@@ -255,13 +264,7 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - Logo component: `src/components/Logo.tsx` (icon + wordmark, accepts `size` prop: sm/md/lg)
 - Favicons: `public/favicon-16.png`, `public/favicon-32.png`
 - App icons: `public/logo-192.png`, `public/logo-512.png`
-- Open Graph image: `public/og-image.png` (1200x630px) with logo, tagline, description, and CTA pill
-
-### Open Graph Meta Tags
-All OG and Twitter card meta tags are set in `index.html`:
-- Title: "ListingIgnite — List it. Ignite it."
-- Description: "AI-generated marketing content for every listing — MLS copy, social posts, email blast, and more. In seconds."
-- Image: https://listingignite.com/og-image.png
+- Open Graph image: `public/og-image.png` (1200x630px)
 
 ---
 
@@ -287,6 +290,13 @@ All OG and Twitter card meta tags are set in `index.html`:
 - Status section at top of modal — changes staged until "Save Changes" clicked
 - Uses timestamps in storage filenames to avoid browser caching issues
 - Scrollable to handle all fields on smaller screens
+
+### `FeedbackButton` + `FeedbackModal`
+- `src/components/FeedbackButton.tsx` — floating button fixed to bottom right on all authenticated pages
+- `src/components/FeedbackModal.tsx` — modal with topic dropdown and message textarea
+- User name/email pre-filled from Supabase profile
+- Submits via `send-email` Edge Function to jason@listingignite.com
+- Subject format: `[ListingIgnite Feedback] {topic} from {user name}`
 
 ### Dashboard Cards
 - 3 columns desktop, 2 columns tablet, 1 column mobile
@@ -322,7 +332,6 @@ All OG and Twitter card meta tags are set in `index.html`:
 - `src/pages/PrivacyPolicy.tsx` at `/privacy`
 - `src/pages/Terms.tsx` at `/terms`
 - Content sourced from `legal-content.md` in project root
-- AI-generated, not lawyer reviewed — sufficient for MVP stage
 
 ### Auth Pages
 - Login: `src/pages/Login.tsx` — Google OAuth + email/password, with "Forgot your password?" link
@@ -345,6 +354,7 @@ All OG and Twitter card meta tags are set in `index.html`:
 
 - ✅ **Anthropic API key** — Supabase Edge Function secret only, never in browser
 - ✅ **Resend API key** — Supabase Edge Function secret only, never client-side
+- ✅ **Kit API keys** — Supabase Edge Function secrets only, never client-side
 - ⚠️ **GitHub repository is public** — required for Vercel Hobby plan. All secrets are in Supabase/Vercel, not the repo.
 
 ---
@@ -364,31 +374,19 @@ All OG and Twitter card meta tags are set in `index.html`:
 
 ## Future Roadmap (Post-MVP)
 
-### 📧 Feedback Form
-**Priority: High — ready to build (Resend now active)**
-A "Share Feedback" button on all protected pages (bottom right). Modal with topic dropdown and message textarea. User name/email pre-filled. Submits via `send-email` Edge Function to jason@listingignite.com. This will also serve as the first real end-to-end test of the `send-email` Edge Function.
-
----
-
 ### 👤 Admin Panel
 **Priority: Medium — build after feature set is stable**
 Internal tool for managing users, adjusting credits, viewing usage stats. Should include:
 - User list with ability to manually adjust `credits_remaining`
 - **Ban/unban users** via a `banned` boolean column on `profiles` — banned users are signed out immediately and shown a "Your account has been suspended" message
-- Blog post management (create, edit, delete posts stored in Supabase — replaces markdown file workflow)
+- Blog post management (create, edit, delete posts — replaces markdown file workflow)
 - Usage analytics
 
 ---
 
 ### 📝 Blog CMS (inside Admin Panel)
 **Priority: Medium**
-Currently blog posts are markdown files committed to the repo. Eventually migrate to a simple CMS inside the admin panel — create, edit, delete posts stored in Supabase. The blog rendering layer stays the same, just the data source changes.
-
----
-
-### 💌 Email Marketing Integration
-**Priority: High — before public launch**
-Waitlist signups (currently saved to Supabase `waitlist` table) should sync to Kit (ConvertKit) for email marketing, autoresponder sequences, and broadcast emails. Integration via Supabase Edge Function or webhook calling Kit's API. Resend handles transactional emails; Kit handles marketing emails.
+Currently blog posts are markdown files committed to the repo. Eventually migrate to a simple CMS inside the admin panel — posts stored in Supabase. The blog rendering layer stays the same, just the data source changes.
 
 ---
 
@@ -433,14 +431,16 @@ Stripe for credit purchases and subscriptions. Webhooks update `credits_remainin
 - [x] YouTube metadata tab (title, description, tags with copy buttons)
 - [x] Listings and outputs saved to Supabase
 - [x] Credit tracking implemented (deduct on success, block at 0)
-- [x] Paywall with waitlist email capture
+- [x] Paywall with waitlist email capture → syncs to Kit ✅
+- [x] Kit (ConvertKit) integration — waitlist subscribers auto-added to Kit form
+- [x] Feedback form — floating button + modal on all authenticated pages ✅
 - [x] Polish & UX pass complete
 - [x] Property image upload (Supabase Storage)
 - [x] Dashboard card grid (3 col, image cards, listing detail page)
 - [x] Edit listing details + image replacement (EditListingModal)
 - [x] Listing status management (Active / Sold / Inactive)
 - [x] Profile / Account page with avatar upload
-- [x] Supabase Edge Functions (send-email + generate-content)
+- [x] Supabase Edge Functions (send-email + generate-content + add-to-kit)
 - [x] Resend account active and verified ✅
 - [x] Landing page live at listingignite.com (with FAQ accordion)
 - [x] Blog live at listingignite.com/blog (markdown-based)
@@ -449,7 +449,7 @@ Stripe for credit purchases and subscriptions. Webhooks update `credits_remainin
 - [x] Brand voice (BRAND-VOICE.md) and style guide (STYLE-GUIDE.md)
 - [x] App footer on all authenticated pages
 - [x] Deployed to Vercel + custom domain (listingignite.com)
-- [ ] Feedback form (next up — Resend now active, ready to build)
-- [ ] Kit (ConvertKit) integration for waitlist/email marketing
+- [x] First real user onboarded (Puerto Rico client) 🎉
+- [ ] First blog post (real SEO content)
 - [ ] Admin panel
 - [ ] Stripe billing

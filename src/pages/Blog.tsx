@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAllPosts } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
+import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
 import AppFooter from '../components/AppFooter'
 
@@ -9,9 +10,14 @@ export default function Blog() {
   const [posts, setPosts] = useState<PostMeta[]>([])
 
   useEffect(() => {
-    document.title = 'Blog — ListingIgnite'
     window.scrollTo(0, 0)
     setPosts(getAllPosts())
+    setPageMeta({
+      title: 'Blog — ListingIgnite',
+      description: 'Real estate marketing tips, AI tools, and strategies to help agents generate more leads and close more deals.',
+      ogUrl: 'https://listingignite.com/blog',
+      canonical: 'https://listingignite.com/blog',
+    })
   }, [])
 
   const allTags = Array.from(new Set(posts.flatMap(p => p.tags ?? []))).sort()

@@ -6,6 +6,8 @@ export interface PostFrontmatter {
   title: string
   date: string
   excerpt: string
+  description?: string
+  category?: string
   featuredImage?: string
   author: string
   tags: string[]
@@ -84,6 +86,8 @@ function toPostFrontmatter(data: Record<string, unknown>): PostFrontmatter {
     title:          typeof data.title          === 'string'  ? data.title          : '',
     date:           typeof data.date           === 'string'  ? data.date           : '',
     excerpt:        typeof data.excerpt        === 'string'  ? data.excerpt        : '',
+    description:    typeof data.description    === 'string'  ? data.description    : undefined,
+    category:       typeof data.category       === 'string'  ? data.category       : undefined,
     author:         typeof data.author         === 'string'  ? data.author         : '',
     featuredImage:  typeof data.featuredImage  === 'string'  ? data.featuredImage  : undefined,
     tags:           Array.isArray(data.tags)                 ? (data.tags as string[]) : [],

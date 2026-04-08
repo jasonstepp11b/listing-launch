@@ -4,9 +4,12 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getPostBySlug, getAllPosts } from '../lib/blog'
 import type { Post, PostMeta } from '../lib/blog'
+import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
 import AppFooter from '../components/AppFooter'
 import logoIconUrl from '../assets/logo-icon.svg'
+
+const SITE_URL = 'https://listingignite.com'
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>()
@@ -26,8 +29,24 @@ export default function BlogPost() {
       setNotFound(true)
     } else {
       setPost(found)
-      document.title = `${found.title} — ListingIgnite Blog`
       setRecentPosts(all.filter(p => p.slug !== slug).slice(0, 3))
+
+      const description = found.description ?? found.excerpt
+      const ogImage = found.featuredImage
+        ? (found.featuredImage.startsWith('http') ? found.featuredImage : `${SITE_URL}${found.featuredImage}`)
+        : `${SITE_URL}/og-image.png`
+
+      setPageMeta({
+        title: `${found.title} — ListingIgnite Blog`,
+        description,
+        ogType: 'article',
+        ogImage,
+        ogUrl: `${SITE_URL}/blog/${found.slug}`,
+        canonical: `${SITE_URL}/blog/${found.slug}`,
+        articlePublishedTime: found.date,
+        articleAuthor: found.author,
+        keywords: found.tags?.join(', '),
+      })
     }
     setLoading(false)
   }, [slug])
