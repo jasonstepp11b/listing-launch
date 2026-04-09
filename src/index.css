@@ -50,6 +50,15 @@
   }
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 #root {
   min-height: 100vh;
 }

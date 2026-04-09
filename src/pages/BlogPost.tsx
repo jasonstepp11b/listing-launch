@@ -286,6 +286,8 @@ const s: Record<string, React.CSSProperties> = {
   notFoundText: { fontSize: '16px', color: '#6b7280', margin: 0 },
   featuredImage: {
     width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
     height: '380px',
     objectFit: 'cover',
     borderRadius: '14px',
@@ -296,6 +298,7 @@ const s: Record<string, React.CSSProperties> = {
   featuredImagePlaceholder: {
     width: '100%',
     maxWidth: '100%',
+    overflow: 'hidden',
     boxSizing: 'border-box',
     height: '400px',
     background: 'linear-gradient(135deg, rgba(139,47,232,0.15) 0%, rgba(124,58,237,0.08) 100%)',

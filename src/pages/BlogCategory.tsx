@@ -364,12 +364,16 @@ const c: Record<string, React.CSSProperties> = {
   },
   image: {
     width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
     height: '200px',
     objectFit: 'cover',
     display: 'block',
   },
   imagePlaceholder: {
     width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
     height: '160px',
     background: 'linear-gradient(135deg, rgba(139,47,232,0.15) 0%, rgba(124,58,237,0.08) 100%)',
     display: 'flex',
