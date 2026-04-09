@@ -411,7 +411,13 @@ const c: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     flex: 1,
   },
-  tagRow: { marginBottom: '10px' },
+  tagRow: {
+    marginBottom: '10px',
+    display: 'flex',
+    flexWrap: 'nowrap',
+    overflow: 'hidden',
+    gap: '6px',
+  },
   tag: {
     padding: '3px 8px',
     background: 'rgba(168,85,247,0.10)',
