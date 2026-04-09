@@ -68,3 +68,23 @@ export function setPageMeta(opts: PageMetaOptions) {
 
   if (opts.canonical) upsertMeta('link[rel="canonical"]', 'href', opts.canonical)
 }
+
+// ─── JSON-LD structured data ──────────────────────────────────────────────────
+// Each schema is identified by a `data-schema-id` attribute so it can be
+// updated in place (slug changes) or removed on unmount — no duplicates.
+
+export function injectJsonLd(id: string, schema: Record<string, unknown>): void {
+  const attr = 'data-schema-id'
+  let el = document.querySelector<HTMLScriptElement>(`script[${attr}="${id}"]`)
+  if (!el) {
+    el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.setAttribute(attr, id)
+    document.head.appendChild(el)
+  }
+  el.textContent = JSON.stringify(schema)
+}
+
+export function removeJsonLd(id: string): void {
+  document.querySelector(`script[data-schema-id="${id}"]`)?.remove()
+}

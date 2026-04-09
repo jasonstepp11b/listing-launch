@@ -9,4 +9,24 @@ author: "Jason Stepp"
 tags: ["real estate marketing", "AI tools", "MLS"]
 published: true
 ---
-This is a placeholder post. Real content coming soon.
+
+Real estate marketing takes time — time most agents don't have.
+
+Between writing MLS descriptions, drafting social captions, putting together email blasts, and designing flyers, a single listing can eat up hours of work before you've even had your first showing.
+
+ListingIgnite changes that. Paste your listing details once, and get a complete marketing kit — MLS copy, social posts, email blast, flyer copy, video script, and SEO landing page — ready to use in seconds.
+
+<!--cta-->
+
+## What's included
+
+Every listing you run through ListingIgnite generates six types of marketing content, all in one shot:
+
+- **MLS Description** — Optimized for search, formatted for submission
+- **Social Posts** — Separate copy for Facebook, Instagram, and X
+- **Email Blast** — Ready to send to your buyer list
+- **Flyer Copy** — Headline and body copy for print
+- **Video Script** — 60–90 second script for Reels, TikTok, or YouTube
+- **SEO Landing Page** — Headline, body, and CTA for a property web page
+
+Real content coming soon.

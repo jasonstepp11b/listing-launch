@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAllPosts, getAllCategories } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
-import { setPageMeta } from '../lib/pageMeta'
+import { setPageMeta, injectJsonLd, removeJsonLd } from '../lib/pageMeta'
 import Logo from '../components/Logo'
 import AppFooter from '../components/AppFooter'
 
@@ -20,6 +20,20 @@ export default function Blog() {
       ogUrl: 'https://listingignite.com/blog',
       canonical: 'https://listingignite.com/blog',
     })
+
+    injectJsonLd('blog-index', {
+      '@context': 'https://schema.org',
+      '@type': 'Blog',
+      name: 'ListingIgnite Blog',
+      description: 'Practical guides, strategies, and insights for real estate agents who want to market faster and sell more.',
+      url: 'https://listingignite.com/blog',
+      publisher: {
+        '@type': 'Organization',
+        name: 'ListingIgnite',
+        url: 'https://listingignite.com',
+      },
+    })
+
     return () => {
       // Reset to site defaults when navigating away so these tags don't bleed
       // into other pages (e.g. individual blog post pages).
@@ -28,6 +42,7 @@ export default function Blog() {
         description: 'AI-generated marketing content for every listing — MLS copy, social posts, email blast, and more. In seconds.',
         ogUrl: 'https://listingignite.com',
       })
+      removeJsonLd('blog-index')
     }
   }, [])
 

@@ -4,9 +4,10 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getPostBySlug, getAllPosts, getRelatedPosts, categoryToSlug } from '../lib/blog'
 import type { Post, PostMeta } from '../lib/blog'
-import { setPageMeta } from '../lib/pageMeta'
+import { setPageMeta, injectJsonLd, removeJsonLd } from '../lib/pageMeta'
 import Logo from '../components/Logo'
 import AppFooter from '../components/AppFooter'
+import BlogCTA from '../components/BlogCTA'
 import logoIconUrl from '../assets/logo-icon.svg'
 
 const SITE_URL = 'https://listingignite.com'
@@ -35,24 +36,71 @@ export default function BlogPost() {
     setLoading(false)
   }, [slug])
 
-  // Effect 2: set meta tags only after post data is confirmed loaded
+  // Effect 2: set meta tags + JSON-LD only after post data is confirmed loaded
   useEffect(() => {
     if (!post) return
+
     const description = post.description ?? post.excerpt
     const ogImage = post.featuredImage
       ? (post.featuredImage.startsWith('http') ? post.featuredImage : `${SITE_URL}${post.featuredImage}`)
       : `${SITE_URL}/og-image.png`
+    const postUrl = `${SITE_URL}/blog/${post.slug}`
+
     setPageMeta({
       title: `${post.title} — ListingIgnite Blog`,
       description,
       ogType: 'article',
       ogImage,
-      ogUrl: `${SITE_URL}/blog/${post.slug}`,
-      canonical: `${SITE_URL}/blog/${post.slug}`,
+      ogUrl: postUrl,
+      canonical: postUrl,
       articlePublishedTime: post.date,
       articleAuthor: post.author,
       keywords: post.tags?.join(', '),
     })
+
+    injectJsonLd('blog-posting', {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      description,
+      image: ogImage,
+      author: {
+        '@type': 'Person',
+        name: post.author,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'ListingIgnite',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${SITE_URL}/logo-192.png`,
+        },
+      },
+      datePublished: post.date,
+      dateModified: post.date,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': postUrl,
+      },
+      url: postUrl,
+      keywords: post.tags?.join(', '),
+      articleSection: post.category,
+    })
+
+    injectJsonLd('breadcrumb', {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home',  item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Blog',  item: `${SITE_URL}/blog` },
+        { '@type': 'ListItem', position: 3, name: post.title, item: postUrl },
+      ],
+    })
+
+    return () => {
+      removeJsonLd('blog-posting')
+      removeJsonLd('breadcrumb')
+    }
   }, [post])
 
   function formatDate(iso: string) {
@@ -121,14 +169,16 @@ export default function BlogPost() {
                   </div>
                 </header>
 
-                {/* Markdown content */}
+                {/* Markdown content — <!--cta--> markers are replaced with <BlogCTA /> */}
                 <div style={s.prose}>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={mdComponents}
-                  >
-                    {post.content}
-                  </ReactMarkdown>
+                  {post.content.split('<!--cta-->').map((segment, i) => (
+                    <span key={i}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                        {segment}
+                      </ReactMarkdown>
+                      {i < post.content.split('<!--cta-->').length - 1 && <BlogCTA />}
+                    </span>
+                  ))}
                 </div>
               </article>
 
@@ -161,6 +211,9 @@ export default function BlogPost() {
               </aside>
 
             </div>
+
+            {/* ── Bottom CTA ── */}
+            <BlogCTA />
 
             {/* ── Related Posts ── */}
             {relatedPosts.length > 0 && (
