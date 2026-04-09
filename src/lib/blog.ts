@@ -112,6 +112,34 @@ export function getAllPosts(): PostMeta[] {
   )
 }
 
+/** Converts a category display name to a URL-safe slug. */
+export function categoryToSlug(category: string): string {
+  return category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
+/** Returns all categories with display name, slug, and post count, sorted alphabetically. */
+export function getAllCategories(): { name: string; slug: string; count: number }[] {
+  const map: Record<string, { name: string; count: number }> = {}
+  for (const path in modules) {
+    const raw = modules[path] as string
+    const { data } = parseFrontmatter(raw)
+    if (!data.published || typeof data.category !== 'string') continue
+    const slug = categoryToSlug(data.category)
+    if (!map[slug]) map[slug] = { name: data.category, count: 0 }
+    map[slug].count++
+  }
+  return Object.entries(map)
+    .map(([slug, { name, count }]) => ({ slug, name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** Returns all published posts in a given category (by URL slug), sorted by date descending. */
+export function getPostsByCategory(categorySlug: string): PostMeta[] {
+  return getAllPosts().filter(
+    p => p.category != null && categoryToSlug(p.category) === categorySlug
+  )
+}
+
 /** Returns a single published post by slug, or null if not found / unpublished. */
 export function getPostBySlug(slug: string): Post | null {
   const path = `../content/blog/${slug}.md`

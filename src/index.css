@@ -141,6 +141,10 @@ button, input, textarea, select {
   gap: 48px;
   align-items: start;
 }
+/* Prevent grid children from overflowing their column on mobile */
+.blog-post-layout > * {
+  min-width: 0;
+}
 .blog-post-sidebar {
   display: flex;
   flex-direction: column;

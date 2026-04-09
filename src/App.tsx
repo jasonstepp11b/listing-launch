@@ -14,6 +14,7 @@ import ResetPassword from './pages/ResetPassword'
 import StyleGuide from './pages/StyleGuide'
 import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
+import BlogCategory from './pages/BlogCategory'
 
 // Authenticated users go straight to /dashboard; everyone else sees the landing page.
 function RootRoute() {
@@ -67,6 +68,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/category/:category" element={<BlogCategory />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           {import.meta.env.DEV && <Route path="/style-guide" element={<StyleGuide />} />}
         </Routes>

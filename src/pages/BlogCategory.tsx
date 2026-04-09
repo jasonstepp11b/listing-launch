@@ -1,37 +1,50 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getAllPosts, getAllCategories } from '../lib/blog'
+import { useParams, Link } from 'react-router-dom'
+import { getPostsByCategory, getAllCategories, getAllPosts } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
 import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
 import AppFooter from '../components/AppFooter'
 
-export default function Blog() {
+const SITE_URL = 'https://listingignite.com'
+
+export default function BlogCategory() {
+  const { category: categorySlug } = useParams<{ category: string }>()
   const [posts, setPosts] = useState<PostMeta[]>([])
-  const [categories, setCategories] = useState<{ name: string; slug: string; count: number }[]>([])
+  const [categoryName, setCategoryName] = useState('')
+  const [allTags, setAllTags] = useState<string[]>([])
 
   useEffect(() => {
+    if (!categorySlug) return
     window.scrollTo(0, 0)
-    setPosts(getAllPosts())
-    setCategories(getAllCategories())
+
+    const found = getPostsByCategory(categorySlug)
+    const cats = getAllCategories()
+    const allPosts = getAllPosts()
+
+    const catInfo = cats.find(c => c.slug === categorySlug)
+    const displayName = catInfo?.name ?? categorySlug.replace(/-/g, ' ')
+    const tags = Array.from(new Set(allPosts.flatMap(p => p.tags ?? []))).sort()
+
+    setPosts(found)
+    setCategoryName(displayName)
+    setAllTags(tags)
+
     setPageMeta({
-      title: 'Blog — ListingIgnite',
-      description: 'Real estate marketing tips, AI tools, and strategies to help agents generate more leads and close more deals.',
-      ogUrl: 'https://listingignite.com/blog',
-      canonical: 'https://listingignite.com/blog',
+      title: `${displayName} — ListingIgnite Blog`,
+      description: `Browse all ${displayName} articles on ListingIgnite — practical guides and strategies for real estate agents.`,
+      ogUrl: `${SITE_URL}/blog/category/${categorySlug}`,
+      canonical: `${SITE_URL}/blog/category/${categorySlug}`,
     })
+
     return () => {
-      // Reset to site defaults when navigating away so these tags don't bleed
-      // into other pages (e.g. individual blog post pages).
       setPageMeta({
         title: 'ListingIgnite — AI Marketing for Real Estate Agents',
         description: 'AI-generated marketing content for every listing — MLS copy, social posts, email blast, and more. In seconds.',
-        ogUrl: 'https://listingignite.com',
+        ogUrl: SITE_URL,
       })
     }
-  }, [])
-
-  const allTags = Array.from(new Set(posts.flatMap(p => p.tags ?? []))).sort()
+  }, [categorySlug])
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -56,10 +69,11 @@ export default function Blog() {
       {/* Header */}
       <div style={s.headerOuter}>
         <div style={s.headerInner}>
-          <p style={s.eyebrow}>The Blog</p>
-          <h1 style={s.headline}>Real Estate Marketing, Simplified.</h1>
-          <p style={s.subheadline}>
-            Practical guides, strategies, and insights for agents who want to market faster and sell more.
+          <Link to="/blog" style={s.backLink}>← Back to Blog</Link>
+          <p style={s.eyebrow}>Category</p>
+          <h1 style={s.headline}>{categoryName || '…'}</h1>
+          <p style={s.postCount}>
+            {posts.length} {posts.length === 1 ? 'post' : 'posts'}
           </p>
         </div>
       </div>
@@ -73,8 +87,11 @@ export default function Blog() {
             {posts.length === 0 ? (
               <div style={s.emptyState}>
                 <div style={s.emptyIcon}>✦</div>
-                <h2 style={s.emptyHeading}>Posts coming soon.</h2>
-                <p style={s.emptyBody}>We're working on practical guides for real estate agents. Check back soon.</p>
+                <h2 style={s.emptyHeading}>No posts yet.</h2>
+                <p style={s.emptyBody}>
+                  Nothing in this category yet — check back soon or{' '}
+                  <Link to="/blog" style={s.emptyLink}>browse all posts</Link>.
+                </p>
               </div>
             ) : (
               <div className="blog-card-grid">
@@ -98,28 +115,13 @@ export default function Blog() {
               <p style={s.ctaNote}>3 free listings. No credit card required.</p>
             </div>
 
-            {/* Popular tags */}
+            {/* Popular topics */}
             {allTags.length > 0 && (
               <div style={s.tagsCard}>
                 <h4 style={s.tagsHeading}>Popular Topics</h4>
                 <div style={s.tagList}>
                   {allTags.map(tag => (
                     <span key={tag} style={s.tag}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Categories */}
-            {categories.length > 0 && (
-              <div style={s.tagsCard}>
-                <h4 style={s.tagsHeading}>Categories</h4>
-                <div style={s.categoryList}>
-                  {categories.map(cat => (
-                    <Link key={cat.slug} to={`/blog/category/${cat.slug}`} style={s.categoryLink}>
-                      <span>{cat.name}</span>
-                      <span style={s.categoryCount}>{cat.count}</span>
-                    </Link>
                   ))}
                 </div>
               </div>
@@ -141,7 +143,6 @@ function PostCard({ post, formatDate }: { post: PostMeta; formatDate: (d: string
 
   return (
     <div style={c.card}>
-      {/* Image */}
       {post.featuredImage && !imgError ? (
         <img
           src={post.featuredImage}
@@ -154,8 +155,6 @@ function PostCard({ post, formatDate }: { post: PostMeta; formatDate: (d: string
           <span style={c.placeholderIcon}>✦</span>
         </div>
       )}
-
-      {/* Content */}
       <div style={c.body}>
         {post.tags && post.tags.length > 0 && (
           <div style={c.tagRow}>
@@ -211,12 +210,23 @@ const s: Record<string, React.CSSProperties> = {
   },
   headerOuter: {
     borderBottom: '1px solid #1e1e28',
-    padding: '64px 24px',
+    padding: '52px 24px 48px',
     textAlign: 'center',
   },
   headerInner: {
     maxWidth: '640px',
     margin: '0 auto',
+  },
+  backLink: {
+    display: 'inline-block',
+    fontSize: '13px',
+    color: '#a0a8b8',
+    textDecoration: 'none',
+    padding: '6px 14px',
+    border: '1px solid #3a3a4a',
+    borderRadius: '6px',
+    fontWeight: '500',
+    marginBottom: '28px',
   },
   eyebrow: {
     fontSize: '12px',
@@ -224,21 +234,21 @@ const s: Record<string, React.CSSProperties> = {
     color: '#a855f7',
     letterSpacing: '1.5px',
     textTransform: 'uppercase',
-    margin: '0 0 16px',
+    margin: '0 0 12px',
   },
   headline: {
-    fontSize: '40px',
+    fontSize: '36px',
     fontWeight: '800',
     color: '#f3f4f6',
-    margin: '0 0 16px',
-    letterSpacing: '-1px',
-    lineHeight: '1.1',
+    margin: '0 0 10px',
+    letterSpacing: '-0.8px',
+    lineHeight: '1.15',
     fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+    textTransform: 'capitalize',
   },
-  subheadline: {
-    fontSize: '17px',
-    color: '#a0a8b8',
-    lineHeight: '1.65',
+  postCount: {
+    fontSize: '15px',
+    color: '#6b7280',
     margin: 0,
   },
   container: {
@@ -272,6 +282,10 @@ const s: Record<string, React.CSSProperties> = {
     color: '#6b7280',
     margin: 0,
     lineHeight: '1.6',
+  },
+  emptyLink: {
+    color: '#a855f7',
+    textDecoration: 'underline',
   },
   ctaCard: {
     background: 'linear-gradient(135deg, rgba(139,47,232,0.12) 0%, rgba(124,58,237,0.06) 100%)',
@@ -336,29 +350,6 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '500',
     color: '#c084fc',
     cursor: 'default',
-  },
-  categoryList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-  },
-  categoryLink: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '7px 10px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#d1d5db',
-    textDecoration: 'none',
-    background: 'transparent',
-    transition: 'background 0.15s',
-  },
-  categoryCount: {
-    fontSize: '12px',
-    color: '#6b7280',
-    fontWeight: '400',
   },
 }
 

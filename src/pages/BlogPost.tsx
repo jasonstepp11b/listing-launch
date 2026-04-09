@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { getPostBySlug, getAllPosts } from '../lib/blog'
+import { getPostBySlug, getAllPosts, categoryToSlug } from '../lib/blog'
 import type { Post, PostMeta } from '../lib/blog'
 import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -18,38 +18,40 @@ export default function BlogPost() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  // Effect 1: load post data
   useEffect(() => {
     window.scrollTo(0, 0)
     if (!slug) return
-
     const found = getPostBySlug(slug)
     const all = getAllPosts()
-
     if (!found) {
       setNotFound(true)
     } else {
       setPost(found)
       setRecentPosts(all.filter(p => p.slug !== slug).slice(0, 3))
-
-      const description = found.description ?? found.excerpt
-      const ogImage = found.featuredImage
-        ? (found.featuredImage.startsWith('http') ? found.featuredImage : `${SITE_URL}${found.featuredImage}`)
-        : `${SITE_URL}/og-image.png`
-
-      setPageMeta({
-        title: `${found.title} — ListingIgnite Blog`,
-        description,
-        ogType: 'article',
-        ogImage,
-        ogUrl: `${SITE_URL}/blog/${found.slug}`,
-        canonical: `${SITE_URL}/blog/${found.slug}`,
-        articlePublishedTime: found.date,
-        articleAuthor: found.author,
-        keywords: found.tags?.join(', '),
-      })
     }
     setLoading(false)
   }, [slug])
+
+  // Effect 2: set meta tags only after post data is confirmed loaded
+  useEffect(() => {
+    if (!post) return
+    const description = post.description ?? post.excerpt
+    const ogImage = post.featuredImage
+      ? (post.featuredImage.startsWith('http') ? post.featuredImage : `${SITE_URL}${post.featuredImage}`)
+      : `${SITE_URL}/og-image.png`
+    setPageMeta({
+      title: `${post.title} — ListingIgnite Blog`,
+      description,
+      ogType: 'article',
+      ogImage,
+      ogUrl: `${SITE_URL}/blog/${post.slug}`,
+      canonical: `${SITE_URL}/blog/${post.slug}`,
+      articlePublishedTime: post.date,
+      articleAuthor: post.author,
+      keywords: post.tags?.join(', '),
+    })
+  }, [post])
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -99,6 +101,14 @@ export default function BlogPost() {
                       <span key={tag} style={s.tag}>{tag}</span>
                     ))}
                   </div>
+                )}
+                {post.category && (
+                  <Link
+                    to={`/blog/category/${categoryToSlug(post.category)}`}
+                    style={s.categoryLink}
+                  >
+                    In: {post.category}
+                  </Link>
                 )}
                 <h1 style={s.title}>{post.title}</h1>
                 <div style={s.meta}>
@@ -219,6 +229,7 @@ const mdComponents = {
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
+    overflowX: 'hidden',
     background: 'linear-gradient(135deg, #0c0c12 0%, #1a1025 100%)',
     fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     color: '#f3f4f6',
@@ -284,6 +295,8 @@ const s: Record<string, React.CSSProperties> = {
   },
   featuredImagePlaceholder: {
     width: '100%',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
     height: '400px',
     background: 'linear-gradient(135deg, rgba(139,47,232,0.15) 0%, rgba(124,58,237,0.08) 100%)',
     border: '1px solid #2e2e3a',
@@ -307,6 +320,16 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: '0.3px',
     textTransform: 'uppercase',
   },
+  categoryLink: {
+    display: 'inline-block',
+    fontSize: '11px',
+    fontWeight: '700',
+    color: '#a855f7',
+    textDecoration: 'none',
+    letterSpacing: '1px',
+    textTransform: 'uppercase',
+    marginBottom: '12px',
+  },
   title: {
     fontSize: '36px',
     fontWeight: '800',
@@ -323,6 +346,8 @@ const s: Record<string, React.CSSProperties> = {
   prose: {},
 
   ctaCard: {
+    width: '100%',
+    boxSizing: 'border-box',
     background: 'linear-gradient(135deg, rgba(139,47,232,0.12) 0%, rgba(124,58,237,0.06) 100%)',
     border: '1px solid rgba(168,85,247,0.35)',
     borderRadius: '16px',
