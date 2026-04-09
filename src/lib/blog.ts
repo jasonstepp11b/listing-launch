@@ -140,6 +140,45 @@ export function getPostsByCategory(categorySlug: string): PostMeta[] {
   )
 }
 
+/**
+ * Returns up to `limit` posts related to the given post.
+ * Scoring: +2 for same category, +1 per shared tag.
+ * Only posts with a score > 0 are returned; falls back to the most recent
+ * posts (excluding the current one) if nothing matches.
+ */
+export function getRelatedPosts(
+  currentSlug: string,
+  category: string | undefined,
+  tags: string[],
+  limit = 3
+): PostMeta[] {
+  const others = getAllPosts().filter(p => p.slug !== currentSlug)
+
+  const scored = others.map(post => {
+    let score = 0
+    if (category && post.category === category) score += 2
+    for (const tag of tags) {
+      if ((post.tags ?? []).includes(tag)) score += 1
+    }
+    return { post, score }
+  })
+
+  const relevant = scored.filter(({ score }) => score > 0)
+
+  if (relevant.length > 0) {
+    return relevant
+      .sort((a, b) =>
+        b.score - a.score ||
+        new Date(b.post.date).getTime() - new Date(a.post.date).getTime()
+      )
+      .slice(0, limit)
+      .map(({ post }) => post)
+  }
+
+  // Fallback: most recent posts
+  return others.slice(0, limit)
+}
+
 /** Returns a single published post by slug, or null if not found / unpublished. */
 export function getPostBySlug(slug: string): Post | null {
   const path = `../content/blog/${slug}.md`

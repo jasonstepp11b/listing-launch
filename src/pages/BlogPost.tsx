@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { getPostBySlug, getAllPosts, categoryToSlug } from '../lib/blog'
+import { getPostBySlug, getAllPosts, getRelatedPosts, categoryToSlug } from '../lib/blog'
 import type { Post, PostMeta } from '../lib/blog'
 import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -15,6 +15,7 @@ export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>()
   const [post, setPost] = useState<Post | null>(null)
   const [recentPosts, setRecentPosts] = useState<PostMeta[]>([])
+  const [relatedPosts, setRelatedPosts] = useState<PostMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -29,6 +30,7 @@ export default function BlogPost() {
     } else {
       setPost(found)
       setRecentPosts(all.filter(p => p.slug !== slug).slice(0, 3))
+      setRelatedPosts(getRelatedPosts(slug, found.category, found.tags ?? []))
     }
     setLoading(false)
   }, [slug])
@@ -86,82 +88,136 @@ export default function BlogPost() {
             <Link to="/blog" style={s.backLink}>← Back to Blog</Link>
           </div>
         ) : post ? (
-          <div className="blog-post-layout">
+          <>
+            <div className="blog-post-layout">
 
-            {/* ── Main content ── */}
-            <article>
-              {/* Featured image */}
-              <FeaturedImage src={post.featuredImage} alt={post.title} />
+              {/* ── Main content ── */}
+              <article>
+                {/* Featured image */}
+                <FeaturedImage src={post.featuredImage} alt={post.title} />
 
-              {/* Post header */}
-              <header style={s.postHeader}>
-                {post.tags && post.tags.length > 0 && (
-                  <div style={s.tagRow}>
-                    {post.tags.map(tag => (
-                      <span key={tag} style={s.tag}>{tag}</span>
-                    ))}
+                {/* Post header */}
+                <header style={s.postHeader}>
+                  {post.tags && post.tags.length > 0 && (
+                    <div style={s.tagRow}>
+                      {post.tags.map(tag => (
+                        <span key={tag} style={s.tag}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  {post.category && (
+                    <Link
+                      to={`/blog/category/${categoryToSlug(post.category)}`}
+                      style={s.categoryLink}
+                    >
+                      In: {post.category}
+                    </Link>
+                  )}
+                  <h1 style={s.title}>{post.title}</h1>
+                  <div style={s.meta}>
+                    <span style={s.author}>By {post.author}</span>
+                    <span style={s.metaDot}>·</span>
+                    <span style={s.date}>{formatDate(post.date)}</span>
                   </div>
-                )}
-                {post.category && (
-                  <Link
-                    to={`/blog/category/${categoryToSlug(post.category)}`}
-                    style={s.categoryLink}
+                </header>
+
+                {/* Markdown content */}
+                <div style={s.prose}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={mdComponents}
                   >
-                    In: {post.category}
-                  </Link>
-                )}
-                <h1 style={s.title}>{post.title}</h1>
-                <div style={s.meta}>
-                  <span style={s.author}>By {post.author}</span>
-                  <span style={s.metaDot}>·</span>
-                  <span style={s.date}>{formatDate(post.date)}</span>
+                    {post.content}
+                  </ReactMarkdown>
                 </div>
-              </header>
+              </article>
 
-              {/* Markdown content */}
-              <div style={s.prose}>
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={mdComponents}
-                >
-                  {post.content}
-                </ReactMarkdown>
-              </div>
-            </article>
+              {/* ── Sidebar ── */}
+              <aside className="blog-post-sidebar">
+                {/* CTA card */}
+                <div style={s.ctaCard}>
+                  <div style={s.ctaSparkle}>✦</div>
+                  <h3 style={s.ctaHeading}>Ready to market faster?</h3>
+                  <p style={s.ctaBody}>
+                    Paste your listing details. Get MLS copy, social posts, email blast, and more — in seconds.
+                  </p>
+                  <Link to="/login" style={s.ctaBtn}>Get Started Free →</Link>
+                  <p style={s.ctaNote}>3 free listings. No credit card required.</p>
+                </div>
 
-            {/* ── Sidebar ── */}
-            <aside className="blog-post-sidebar">
-              {/* CTA card */}
-              <div style={s.ctaCard}>
-                <div style={s.ctaSparkle}>✦</div>
-                <h3 style={s.ctaHeading}>Ready to market faster?</h3>
-                <p style={s.ctaBody}>
-                  Paste your listing details. Get MLS copy, social posts, email blast, and more — in seconds.
-                </p>
-                <Link to="/login" style={s.ctaBtn}>Get Started Free →</Link>
-                <p style={s.ctaNote}>3 free listings. No credit card required.</p>
-              </div>
-
-              {/* Recent posts */}
-              {recentPosts.length > 0 && (
-                <div style={s.recentCard}>
-                  <h4 style={s.recentHeading}>Recent Posts</h4>
-                  <div style={s.recentList}>
-                    {recentPosts.map(p => (
-                      <Link key={p.slug} to={`/blog/${p.slug}`} style={s.recentLink}>
-                        {p.title}
-                      </Link>
-                    ))}
+                {/* Recent posts */}
+                {recentPosts.length > 0 && (
+                  <div style={s.recentCard}>
+                    <h4 style={s.recentHeading}>Recent Posts</h4>
+                    <div style={s.recentList}>
+                      {recentPosts.map(p => (
+                        <Link key={p.slug} to={`/blog/${p.slug}`} style={s.recentLink}>
+                          {p.title}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </aside>
+                )}
+              </aside>
 
-          </div>
+            </div>
+
+            {/* ── Related Posts ── */}
+            {relatedPosts.length > 0 && (
+              <section style={s.relatedSection}>
+                <hr style={s.relatedDivider} />
+                <h2 style={s.relatedHeading}>Keep Reading</h2>
+                <div className="blog-card-grid">
+                  {relatedPosts.map(p => (
+                    <RelatedPostCard key={p.slug} post={p} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         ) : null}
       </div>
 
       <AppFooter />
+    </div>
+  )
+}
+
+// ─── Related post card ───────────────────────────────────────────────────────
+
+function RelatedPostCard({ post }: { post: PostMeta }) {
+  const [imgError, setImgError] = useState(false)
+
+  return (
+    <div style={r.card}>
+      {/* Image */}
+      {post.featuredImage && !imgError ? (
+        <img
+          src={post.featuredImage}
+          alt={post.title}
+          style={r.image}
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div style={r.imagePlaceholder}>
+          <span style={r.placeholderIcon}>✦</span>
+        </div>
+      )}
+
+      {/* Body */}
+      <div style={r.body}>
+        {post.category && (
+          <Link
+            to={`/blog/category/${categoryToSlug(post.category)}`}
+            style={r.categoryLabel}
+          >
+            {post.category}
+          </Link>
+        )}
+        <h3 style={r.title}>{post.title}</h3>
+        {post.excerpt && <p style={r.excerpt}>{post.excerpt}</p>}
+        <Link to={`/blog/${post.slug}`} style={r.readMore}>Read More →</Link>
+      </div>
     </div>
   )
 }
@@ -407,6 +463,22 @@ const s: Record<string, React.CSSProperties> = {
     lineHeight: '1.5',
     fontWeight: '500',
   },
+  relatedSection: {
+    marginTop: '56px',
+  },
+  relatedDivider: {
+    border: 'none',
+    borderTop: '1px solid #2e2e3a',
+    margin: '0 0 48px',
+  },
+  relatedHeading: {
+    fontSize: '22px',
+    fontWeight: '800',
+    color: '#f3f4f6',
+    margin: '0 0 28px',
+    letterSpacing: '-0.4px',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+  },
 }
 
 // Markdown-rendered element styles
@@ -483,5 +555,80 @@ const md: Record<string, React.CSSProperties> = {
     margin: '28px 0',
     boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
     border: '1px solid #2e2e3a',
+  },
+}
+
+// ─── Related post card styles ─────────────────────────────────────────────────
+
+const r: Record<string, React.CSSProperties> = {
+  card: {
+    background: '#1a1a22',
+    border: '1px solid #2e2e3a',
+    borderRadius: '14px',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  image: {
+    width: '100%',
+    maxWidth: '100%',
+    height: '180px',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    height: '140px',
+    background: 'linear-gradient(135deg, rgba(139,47,232,0.15) 0%, rgba(124,58,237,0.08) 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderIcon: { fontSize: '24px', color: '#a855f7', opacity: 0.5 },
+  body: {
+    padding: '18px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    gap: '8px',
+  },
+  categoryLabel: {
+    fontSize: '10px',
+    fontWeight: '700',
+    color: '#a855f7',
+    textDecoration: 'none',
+    letterSpacing: '1px',
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontSize: '16px',
+    fontWeight: '700',
+    color: '#f3f4f6',
+    margin: 0,
+    letterSpacing: '-0.2px',
+    lineHeight: '1.35',
+    fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+  },
+  excerpt: {
+    fontSize: '13px',
+    color: '#6b7280',
+    lineHeight: '1.6',
+    margin: 0,
+    flex: 1,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  },
+  readMore: {
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#a855f7',
+    textDecoration: 'none',
+    marginTop: 'auto',
+    paddingTop: '10px',
+    borderTop: '1px solid #2e2e3a',
   },
 }
