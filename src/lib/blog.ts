@@ -117,6 +117,36 @@ export function categoryToSlug(category: string): string {
   return category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
+/** Converts a tag to a URL-safe slug. */
+export function tagToSlug(tag: string): string {
+  return tag.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+}
+
+/** Returns all unique tags across published posts with count, sorted by count descending. */
+export function getAllTags(): { name: string; slug: string; count: number }[] {
+  const map: Record<string, { name: string; count: number }> = {}
+  for (const path in modules) {
+    const raw = modules[path] as string
+    const { data } = parseFrontmatter(raw)
+    if (!data.published || !Array.isArray(data.tags)) continue
+    for (const tag of data.tags as string[]) {
+      const slug = tagToSlug(tag)
+      if (!map[slug]) map[slug] = { name: tag, count: 0 }
+      map[slug].count++
+    }
+  }
+  return Object.entries(map)
+    .map(([slug, { name, count }]) => ({ slug, name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+}
+
+/** Returns all published posts that include the given tag (by URL slug), sorted by date descending. */
+export function getPostsByTag(tagSlug: string): PostMeta[] {
+  return getAllPosts().filter(
+    p => (p.tags ?? []).some(t => tagToSlug(t) === tagSlug)
+  )
+}
+
 /** Returns all categories with display name, slug, and post count, sorted alphabetically. */
 export function getAllCategories(): { name: string; slug: string; count: number }[] {
   const map: Record<string, { name: string; count: number }> = {}

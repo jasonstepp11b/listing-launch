@@ -6,7 +6,7 @@ description: "Learn how to build a real estate listing marketing plan that gets 
 featuredImage: "/blog/images/featured-test.png"
 category: "Marketing"
 author: "Jason Stepp"
-tags: ["real estate listing marketing", "listing marketing", "real estate marketing plan", "marketing ideas"]
+tags: ["real estate listing marketing", "listing marketing", "real estate marketing plan", "marketing ideas", "mls"]
 published: true
 ---
 

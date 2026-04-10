@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getPostsByCategory, getAllCategories, getAllPosts, tagToSlug } from '../lib/blog'
+import { getPostsByTag, getAllTags, getAllCategories, tagToSlug } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
 import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -8,43 +8,42 @@ import AppFooter from '../components/AppFooter'
 
 const SITE_URL = 'https://listingignite.com'
 
-export default function BlogCategory() {
-  const { category: categorySlug } = useParams<{ category: string }>()
+export default function BlogTag() {
+  const { tag: tagSlug } = useParams<{ tag: string }>()
   const [posts, setPosts] = useState<PostMeta[]>([])
-  const [categoryName, setCategoryName] = useState('')
-  const [allTags, setAllTags] = useState<string[]>([])
+  const [tagName, setTagName] = useState('')
+  const [allTags, setAllTags] = useState<{ name: string; slug: string; count: number }[]>([])
+  const [categories, setCategories] = useState<{ name: string; slug: string; count: number }[]>([])
 
   useEffect(() => {
-    if (!categorySlug) return
+    if (!tagSlug) return
     window.scrollTo(0, 0)
 
-    const found = getPostsByCategory(categorySlug)
+    const found = getPostsByTag(tagSlug)
+    const tags = getAllTags()
     const cats = getAllCategories()
-    const allPosts = getAllPosts()
 
-    const catInfo = cats.find(c => c.slug === categorySlug)
-    const displayName = catInfo?.name ?? categorySlug.replace(/-/g, ' ')
-    const tags = Array.from(new Set(allPosts.flatMap(p => p.tags ?? []))).sort()
+    const tagInfo = tags.find(t => t.slug === tagSlug)
+    const displayName = tagInfo?.name ?? tagSlug.replace(/-/g, ' ')
 
     setPosts(found)
-    setCategoryName(displayName)
+    setTagName(displayName)
     setAllTags(tags)
+    setCategories(cats)
 
-    const rawCatDescription = `Browse all ${displayName} articles on ListingIgnite — practical guides and strategies for real estate agents.`
-    const catDescription = rawCatDescription.length > 155
-      ? rawCatDescription.slice(0, 152) + '...'
-      : rawCatDescription
-    const catSuffix = ' — ListingIgnite Blog'
-    const catTitle = (`${displayName}${catSuffix}`).length <= 60
-      ? `${displayName}${catSuffix}`
-      : displayName
+    const robots = found.length >= 3 ? 'index, follow' : 'noindex, follow'
+    const suffix = ` — ListingIgnite Blog`
+    const title = (`#${displayName}${suffix}`).length <= 60
+      ? `#${displayName}${suffix}`
+      : `#${displayName}`
 
     setPageMeta({
-      title: catTitle,
-      description: catDescription,
+      title,
+      description: `Browse all posts tagged "${displayName}" on ListingIgnite — practical guides and strategies for real estate agents.`,
       ogImage: `${SITE_URL}/og-image.png`,
-      ogUrl: `${SITE_URL}/blog/category/${categorySlug}`,
-      canonical: `${SITE_URL}/blog/category/${categorySlug}`,
+      ogUrl: `${SITE_URL}/blog/tag/${tagSlug}`,
+      canonical: `${SITE_URL}/blog/tag/${tagSlug}`,
+      robots,
     })
 
     return () => {
@@ -52,9 +51,10 @@ export default function BlogCategory() {
         title: 'ListingIgnite — AI Marketing for Real Estate Agents',
         description: 'AI-generated marketing content for every listing — MLS copy, social posts, email blast, and more. In seconds.',
         ogUrl: SITE_URL,
+        robots: 'index, follow',
       })
     }
-  }, [categorySlug])
+  }, [tagSlug])
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -80,8 +80,8 @@ export default function BlogCategory() {
       <div style={s.headerOuter}>
         <div style={s.headerInner}>
           <Link to="/blog" style={s.backLink}>← Back to Blog</Link>
-          <p style={s.eyebrow}>Category</p>
-          <h1 style={s.headline}>{categoryName || '…'}</h1>
+          <p style={s.eyebrow}>Tag</p>
+          <h1 style={s.headline}>#{tagName || '…'}</h1>
           <p style={s.postCount}>
             {posts.length} {posts.length === 1 ? 'post' : 'posts'}
           </p>
@@ -99,7 +99,7 @@ export default function BlogCategory() {
                 <div style={s.emptyIcon}>✦</div>
                 <h2 style={s.emptyHeading}>No posts yet.</h2>
                 <p style={s.emptyBody}>
-                  Nothing in this category yet — check back soon or{' '}
+                  Nothing tagged "{tagName}" yet — check back soon or{' '}
                   <Link to="/blog" style={s.emptyLink}>browse all posts</Link>.
                 </p>
               </div>
@@ -131,7 +131,31 @@ export default function BlogCategory() {
                 <h4 style={s.tagsHeading}>Popular Topics</h4>
                 <div style={s.tagList}>
                   {allTags.map(tag => (
-                    <Link key={tag} to={`/blog/tag/${tagToSlug(tag)}`} style={s.tag}>{tag}</Link>
+                    <Link
+                      key={tag.slug}
+                      to={`/blog/tag/${tag.slug}`}
+                      style={{
+                        ...s.tag,
+                        ...(tag.slug === tagSlug ? s.tagActive : {}),
+                      }}
+                    >
+                      {tag.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Categories */}
+            {categories.length > 0 && (
+              <div style={s.tagsCard}>
+                <h4 style={s.tagsHeading}>Categories</h4>
+                <div style={s.categoryList}>
+                  {categories.map(cat => (
+                    <Link key={cat.slug} to={`/blog/category/${cat.slug}`} style={s.categoryLink}>
+                      <span>{cat.name}</span>
+                      <span style={s.categoryCount}>{cat.count}</span>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -168,7 +192,9 @@ function PostCard({ post, formatDate }: { post: PostMeta; formatDate: (d: string
       <div style={c.body}>
         {post.tags && post.tags.length > 0 && (
           <div style={c.tagRow}>
-            <Link to={`/blog/tag/${tagToSlug(post.tags[0])}`} style={c.tag}>{post.tags[0]}</Link>
+            <Link to={`/blog/tag/${tagToSlug(post.tags[0])}`} style={c.tag}>
+              {post.tags[0]}
+            </Link>
           </div>
         )}
         <h2 style={c.title}>{post.title}</h2>
@@ -254,7 +280,6 @@ const s: Record<string, React.CSSProperties> = {
     letterSpacing: '-0.8px',
     lineHeight: '1.15',
     fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-    textTransform: 'capitalize',
   },
   postCount: {
     fontSize: '15px',
@@ -361,6 +386,33 @@ const s: Record<string, React.CSSProperties> = {
     color: '#c084fc',
     textDecoration: 'none',
     cursor: 'pointer',
+  },
+  tagActive: {
+    background: 'rgba(168,85,247,0.25)',
+    border: '1px solid rgba(168,85,247,0.6)',
+    color: '#e879f9',
+  },
+  categoryList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  categoryLink: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '7px 10px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#d1d5db',
+    textDecoration: 'none',
+    background: 'transparent',
+  },
+  categoryCount: {
+    fontSize: '12px',
+    color: '#6b7280',
+    fontWeight: '400',
   },
 }
 

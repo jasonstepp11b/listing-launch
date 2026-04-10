@@ -14,6 +14,7 @@ export interface PageMetaOptions {
   articlePublishedTime?: string
   articleAuthor?: string
   keywords?: string
+  robots?: string
 }
 
 const SITE_URL = 'https://listingignite.com'
@@ -67,6 +68,7 @@ export function setPageMeta(opts: PageMetaOptions) {
   upsertMeta('meta[name="twitter:image"]',       'content', ogImage)
 
   if (opts.canonical) upsertMeta('link[rel="canonical"]', 'href', opts.canonical)
+  if (opts.robots)    upsertMeta('meta[name="robots"]',   'content', opts.robots)
 }
 
 // ─── JSON-LD structured data ──────────────────────────────────────────────────

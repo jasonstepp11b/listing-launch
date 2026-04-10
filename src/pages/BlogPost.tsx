@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { getPostBySlug, getAllPosts, getRelatedPosts, categoryToSlug } from '../lib/blog'
+import { getPostBySlug, getAllPosts, getRelatedPosts, categoryToSlug, tagToSlug } from '../lib/blog'
 import type { Post, PostMeta } from '../lib/blog'
 import { setPageMeta, injectJsonLd, removeJsonLd } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -154,7 +154,7 @@ export default function BlogPost() {
                   {post.tags && post.tags.length > 0 && (
                     <div style={s.tagRow}>
                       {post.tags.map(tag => (
-                        <span key={tag} style={s.tag}>{tag}</span>
+                        <Link key={tag} to={`/blog/tag/${tagToSlug(tag)}`} style={s.tag}>{tag}</Link>
                       ))}
                     </div>
                   )}
@@ -528,6 +528,7 @@ const s: Record<string, React.CSSProperties> = {
     color: '#c084fc',
     letterSpacing: '0.3px',
     textTransform: 'uppercase',
+    textDecoration: 'none',
   },
   categoryLink: {
     display: 'inline-block',

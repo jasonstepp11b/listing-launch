@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllPosts, getAllCategories } from '../lib/blog'
+import { getAllPosts, getAllCategories, tagToSlug } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
 import { setPageMeta, injectJsonLd, removeJsonLd } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -119,7 +119,7 @@ export default function Blog() {
                 <h4 style={s.tagsHeading}>Popular Topics</h4>
                 <div style={s.tagList}>
                   {allTags.map(tag => (
-                    <span key={tag} style={s.tag}>{tag}</span>
+                    <Link key={tag} to={`/blog/tag/${tagToSlug(tag)}`} style={s.tag}>{tag}</Link>
                   ))}
                 </div>
               </div>
@@ -174,7 +174,7 @@ function PostCard({ post, formatDate }: { post: PostMeta; formatDate: (d: string
       <div style={c.body}>
         {post.tags && post.tags.length > 0 && (
           <div style={c.tagRow}>
-            <span style={c.tag}>{post.tags[0]}</span>
+            <Link to={`/blog/tag/${tagToSlug(post.tags[0])}`} style={c.tag}>{post.tags[0]}</Link>
           </div>
         )}
         <h2 style={c.title}>{post.title}</h2>
@@ -350,7 +350,8 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     fontWeight: '500',
     color: '#c084fc',
-    cursor: 'default',
+    textDecoration: 'none',
+    cursor: 'pointer',
   },
   categoryList: {
     display: 'flex',

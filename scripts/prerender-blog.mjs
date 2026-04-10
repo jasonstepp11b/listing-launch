@@ -82,7 +82,7 @@ function esc(str) {
     .replace(/>/g, '&gt;')
 }
 
-function inject(html, { title, description, ogTitle, ogDescription, ogImage, ogUrl, ogType }) {
+function inject(html, { title, description, ogTitle, ogDescription, ogImage, ogUrl, ogType, robots }) {
   const t   = esc(title)
   const d   = esc(description)
   const ot  = esc(ogTitle ?? title)
@@ -90,6 +90,7 @@ function inject(html, { title, description, ogTitle, ogDescription, ogImage, ogU
   const oi  = esc(ogImage)
   const ou  = esc(ogUrl)
   const oty = esc(ogType ?? 'website')
+  const rob = esc(robots ?? 'index, follow')
 
   return html
     .replace(/<title>[^<]*<\/title>/,                                          `<title>${t}</title>`)
@@ -101,6 +102,13 @@ function inject(html, { title, description, ogTitle, ogDescription, ogImage, ogU
     .replace(/(<meta\s+property="og:type"\s+content=")[^"]*(")/,              `$1${oty}$2`)
     .replace(/(<meta\s+name="twitter:title"\s+content=")[^"]*(")/,            `$1${ot}$2`)
     .replace(/(<meta\s+name="twitter:description"\s+content=")[^"]*(")/,      `$1${od}$2`)
+    .replace(/(<meta\s+name="robots"\s+content=")[^"]*(")/,                   `$1${rob}$2`)
+}
+
+// ─── Tag slug helper (mirrors src/lib/blog.ts) ───────────────────────────────
+
+function tagToSlug(tag) {
+  return tag.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -160,6 +168,43 @@ for (const file of files) {
     }),
   )
   console.log(`✓  prerendered /blog/${slug}`)
+}
+
+// Tag pages
+const tagMap = {}
+for (const file of files) {
+  const raw  = readFileSync(join(blogDir, file), 'utf8')
+  const data = parseFrontmatter(raw)
+  if (!data.published || !Array.isArray(data.tags)) continue
+  for (const tag of data.tags) {
+    const slug = tagToSlug(String(tag))
+    if (!tagMap[slug]) tagMap[slug] = { name: String(tag), count: 0 }
+    tagMap[slug].count++
+  }
+}
+
+for (const [slug, { name, count }] of Object.entries(tagMap)) {
+  const robots  = count >= 3 ? 'index, follow' : 'noindex, follow'
+  const suffix  = ' — ListingIgnite Blog'
+  const tagTitle = (`#${name}${suffix}`).length <= 60 ? `#${name}${suffix}` : `#${name}`
+  const tagDesc  = `Browse all posts tagged "${name}" on ListingIgnite — practical guides and strategies for real estate agents.`
+
+  const outDir = join(distDir, 'blog', 'tag', slug)
+  mkdirSync(outDir, { recursive: true })
+  writeFileSync(
+    join(outDir, 'index.html'),
+    inject(baseHtml, {
+      title:         tagTitle,
+      description:   tagDesc,
+      ogTitle:       tagTitle,
+      ogDescription: tagDesc,
+      ogImage:       `${SITE_URL}/og-image.png`,
+      ogUrl:         `${SITE_URL}/blog/tag/${slug}`,
+      ogType:        'website',
+      robots,
+    }),
+  )
+  console.log(`✓  prerendered /blog/tag/${slug}`)
 }
 
 console.log('Prerender complete.')
