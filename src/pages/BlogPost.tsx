@@ -326,7 +326,7 @@ function childrenToText(children: React.ReactNode): string {
   if (typeof children === 'number') return String(children)
   if (Array.isArray(children)) return children.map(childrenToText).join('')
   if (children != null && typeof children === 'object' && 'props' in (children as object)) {
-    return childrenToText((children as React.ReactElement).props.children)
+    return childrenToText((children as React.ReactElement<{ children?: React.ReactNode }>).props.children)
   }
   return ''
 }
