@@ -4,7 +4,6 @@ date: "2026-04-08"
 excerpt: "Most agents treat listing marketing as an afterthought. The ones winning listings treat it as a system. Here's the plan that makes it repeatable."
 description: "Learn how to build a real estate listing marketing plan that gets properties sold faster. Covers MLS strategy, professional photos, open house tactics, email marketing, social media, and the marketing materials every agent needs ready before a listing goes live."
 category: "Marketing"
-featuredImage: "https://listingignite.com/og-image.png"
 author: "Jason Stepp"
 tags: ["real estate listing marketing", "listing marketing", "real estate marketing plan", "marketing ideas"]
 published: true

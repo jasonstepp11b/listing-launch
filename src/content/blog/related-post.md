@@ -4,7 +4,6 @@ date: "2026-04-08"
 excerpt: "Excerpt - This is just a test of related posts"
 description: "Descriptipn - This is just a test of related posts"
 category: "Marketing"
-featuredImage: "/blog/images/placeholder.jpg"
 author: "Jason Stepp"
 tags: ["real estate marketing", "AI tools", "MLS"]
 published: true
