@@ -150,6 +150,8 @@ Don't wait until the property is live to think about social content. Draft your 
 
 Every piece of real estate marketing material listed above — flyer copy, email blasts, social posts, MLS descriptions, video scripts, and SEO landing pages — gets generated from a single listing form. Paste your details. Get your full marketing kit in seconds. Serious agents use it to move faster on every listing without sacrificing quality.
 
+<!--cta-->
+
 ---
 
 ## How to Measure Whether Your Listing Marketing Is Working
@@ -187,6 +189,7 @@ Build your listing marketing ideas around what you can execute consistently. A n
 As you get more listings under your belt, add layers: video, paid social, marketing campaigns, direct mail. The goal is a repeatable system — not a perfect one on day one.
 
 Successful real estate marketing is built over time. Start simple. Stay consistent. Raise the bar with every listing.
+
 
 ---
 

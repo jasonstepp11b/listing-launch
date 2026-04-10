@@ -40,8 +40,6 @@ const s: Record<string, React.CSSProperties> = {
   icon: {
     width: '48px',
     height: '48px',
-    opacity: 0.9,
-    filter: 'brightness(0) invert(1)',
   },
   headline: {
     fontSize: '28px',
