@@ -30,9 +30,19 @@ export default function BlogCategory() {
     setCategoryName(displayName)
     setAllTags(tags)
 
+    const rawCatDescription = `Browse all ${displayName} articles on ListingIgnite — practical guides and strategies for real estate agents.`
+    const catDescription = rawCatDescription.length > 155
+      ? rawCatDescription.slice(0, 152) + '...'
+      : rawCatDescription
+    const catSuffix = ' — ListingIgnite Blog'
+    const catTitle = (`${displayName}${catSuffix}`).length <= 60
+      ? `${displayName}${catSuffix}`
+      : displayName
+
     setPageMeta({
-      title: `${displayName} — ListingIgnite Blog`,
-      description: `Browse all ${displayName} articles on ListingIgnite — practical guides and strategies for real estate agents.`,
+      title: catTitle,
+      description: catDescription,
+      ogImage: `${SITE_URL}/og-image.png`,
       ogUrl: `${SITE_URL}/blog/category/${categorySlug}`,
       canonical: `${SITE_URL}/blog/category/${categorySlug}`,
     })

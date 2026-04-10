@@ -40,14 +40,19 @@ export default function BlogPost() {
   useEffect(() => {
     if (!post) return
 
-    const description = post.description ?? post.excerpt
+    const rawDescription = post.description ?? post.excerpt ?? ''
+    const description = rawDescription.length > 155
+      ? rawDescription.slice(0, 152) + '...'
+      : rawDescription
     const ogImage = post.featuredImage
-      ? (post.featuredImage.startsWith('http') ? post.featuredImage : `${SITE_URL}${post.featuredImage}`)
+      ? `${SITE_URL}${post.featuredImage}`
       : `${SITE_URL}/og-image.png`
     const postUrl = `${SITE_URL}/blog/${post.slug}`
+    const suffix = ' | ListingIgnite'
+    const title = (post.title + suffix).length <= 60 ? post.title + suffix : post.title
 
     setPageMeta({
-      title: `${post.title} — ListingIgnite Blog`,
+      title,
       description,
       ogType: 'article',
       ogImage,

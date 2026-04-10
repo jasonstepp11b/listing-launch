@@ -131,12 +131,18 @@ for (const file of files) {
 
   if (!data.published) continue
 
-  const slug        = file.replace(/\.md$/, '')
-  const title       = String(data.title ?? '')
-  const description = String(data.description ?? data.excerpt ?? '')
-  const image       = data.featuredImage
-  const ogImage     = image
-    ? (String(image).startsWith('http') ? String(image) : `${SITE_URL}${image}`)
+  const slug           = file.replace(/\.md$/, '')
+  const rawTitle       = String(data.title ?? '')
+  const rawDescription = String(data.description ?? data.excerpt ?? '')
+  const suffix         = ' | ListingIgnite'
+  const title          = (rawTitle + suffix).length <= 60 ? rawTitle + suffix : rawTitle
+  const description    = rawDescription.length > 155
+    ? rawDescription.slice(0, 152) + '...'
+    : rawDescription
+
+  const imageField = data.featuredImage ? String(data.featuredImage) : ''
+  const ogImage    = imageField && !imageField.toLowerCase().includes('placeholder')
+    ? (imageField.startsWith('http') ? imageField : `${SITE_URL}${imageField}`)
     : `${SITE_URL}/og-image.png`
 
   const outDir = join(distDir, 'blog', slug)
@@ -144,9 +150,9 @@ for (const file of files) {
   writeFileSync(
     join(outDir, 'index.html'),
     inject(baseHtml, {
-      title:         `${title} — ListingIgnite Blog`,
+      title,
       description,
-      ogTitle:       `${title} — ListingIgnite Blog`,
+      ogTitle:       title,
       ogDescription: description,
       ogImage,
       ogUrl:         `${SITE_URL}/blog/${slug}`,
