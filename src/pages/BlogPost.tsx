@@ -169,6 +169,12 @@ export default function BlogPost() {
                   </div>
                 </header>
 
+                {/* Table of Contents — shown when post has 2+ H2 headings */}
+                {(() => {
+                  const h2s = extractH2s(post.content)
+                  return h2s.length >= 2 ? <TableOfContents headings={h2s} /> : null
+                })()}
+
                 {/* Markdown content — <!--cta--> markers are replaced with <BlogCTA /> */}
                 <div style={s.prose}>
                   {post.content.split('<!--cta-->').map((segment, i) => (
@@ -298,12 +304,98 @@ function FeaturedImage({ src, alt }: { src?: string; alt: string }) {
   )
 }
 
+// ─── TOC helpers ─────────────────────────────────────────────────────────────
+
+/** Converts a heading string to a URL-safe anchor id. */
+function headingToId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+/** Extracts all H2 heading text values from raw markdown. */
+function extractH2s(content: string): string[] {
+  return [...content.matchAll(/^## (.+)$/gm)].map(m => m[1].trim())
+}
+
+/** Collapses React children to a plain string (covers simple text + inline elements). */
+function childrenToText(children: React.ReactNode): string {
+  if (typeof children === 'string') return children
+  if (typeof children === 'number') return String(children)
+  if (Array.isArray(children)) return children.map(childrenToText).join('')
+  if (children != null && typeof children === 'object' && 'props' in (children as object)) {
+    return childrenToText((children as React.ReactElement).props.children)
+  }
+  return ''
+}
+
+// ─── Table of Contents ────────────────────────────────────────────────────────
+
+function TableOfContents({ headings }: { headings: string[] }) {
+  return (
+    <nav style={toc.box}>
+      <p style={toc.label}>In This Article</p>
+      <ol style={toc.list}>
+        {headings.map(heading => (
+          <li key={heading} style={toc.item}>
+            <a href={`#${headingToId(heading)}`} style={toc.link}>
+              {heading}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+const toc: Record<string, React.CSSProperties> = {
+  box: {
+    background: '#13131a',
+    border: '1px solid #2e2e3a',
+    borderLeft: '3px solid #a855f7',
+    borderRadius: '10px',
+    padding: '20px 24px',
+    margin: '0 0 36px',
+  },
+  label: {
+    fontSize: '11px',
+    fontWeight: '700',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+    margin: '0 0 12px',
+  },
+  list: {
+    margin: 0,
+    padding: '0 0 0 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  item: {
+    margin: 0,
+    padding: 0,
+  },
+  link: {
+    fontSize: '14px',
+    color: '#c084fc',
+    textDecoration: 'none',
+    lineHeight: '1.5',
+    fontWeight: '500',
+  },
+}
+
 // ─── Markdown component overrides ─────────────────────────────────────────────
 // Maps markdown elements to styled JSX so they match the dark premium aesthetic.
 
 const mdComponents = {
   h1: ({ children }: { children?: React.ReactNode }) => <h1 style={md.h1}>{children}</h1>,
-  h2: ({ children }: { children?: React.ReactNode }) => <h2 style={md.h2}>{children}</h2>,
+  h2: ({ children }: { children?: React.ReactNode }) => {
+    const id = headingToId(childrenToText(children))
+    return <h2 id={id} style={md.h2}>{children}</h2>
+  },
   h3: ({ children }: { children?: React.ReactNode }) => <h3 style={md.h3}>{children}</h3>,
   h4: ({ children }: { children?: React.ReactNode }) => <h4 style={md.h4}>{children}</h4>,
   p:  ({ children }: { children?: React.ReactNode }) => <p style={md.p}>{children}</p>,

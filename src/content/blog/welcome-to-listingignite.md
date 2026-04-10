@@ -29,4 +29,10 @@ Every listing you run through ListingIgnite generates six types of marketing con
 - **Video Script** — 60–90 second script for Reels, TikTok, or YouTube
 - **SEO Landing Page** — Headline, body, and CTA for a property web page
 
+## How it works
+
+Fill out the listing form — address, price, features, target buyer — and hit generate. ListingIgnite sends everything to the AI in one request and returns all six content types in under 15 seconds.
+
+Each output is displayed in its own tab, ready to copy with one click. No editing required — though you can always tweak the copy before you use it.
+
 Real content coming soon.
