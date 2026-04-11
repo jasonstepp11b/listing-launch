@@ -19,6 +19,9 @@ dist-ssr
 # Generated at build time — do not commit
 public/sitemap.xml
 
+# Local dev tools — not part of the app
+tools/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

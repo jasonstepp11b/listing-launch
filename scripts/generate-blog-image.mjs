@@ -221,15 +221,14 @@ mkdirSync(outDir, { recursive: true })
 const outPath = join(outDir, `${slug}.jpg`)
 
 const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  headless: 'new',
   args: [
     '--no-sandbox',
     '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
     '--disable-gpu',
   ],
-  timeout: 60000,
+  timeout: 120000,
 })
 
 try {
