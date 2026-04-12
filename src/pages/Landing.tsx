@@ -45,7 +45,7 @@ const STEPS = [
   {
     number: '02',
     title: 'AI generates everything',
-    desc: 'Claude AI produces all 6 formats simultaneously in a single request — no waiting, no back and forth, no prompting required.',
+    desc: 'All 6 formats generated simultaneously in a single request — no waiting, no back and forth, no prompting required.',
   },
   {
     number: '03',
