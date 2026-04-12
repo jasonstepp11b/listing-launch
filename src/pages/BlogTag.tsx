@@ -28,7 +28,7 @@ export default function BlogTag() {
 
     setPosts(found)
     setTagName(displayName)
-    setAllTags(tags)
+    setAllTags(tags.filter(t => t.count >= 3))
     setCategories(cats)
 
     const robots = found.length >= 3 ? 'index, follow' : 'noindex, follow'

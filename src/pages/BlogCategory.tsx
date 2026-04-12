@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getPostsByCategory, getAllCategories, getAllPosts, tagToSlug } from '../lib/blog'
+import { getPostsByCategory, getAllCategories, getAllTags } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
 import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -12,7 +12,7 @@ export default function BlogCategory() {
   const { category: categorySlug } = useParams<{ category: string }>()
   const [posts, setPosts] = useState<PostMeta[]>([])
   const [categoryName, setCategoryName] = useState('')
-  const [allTags, setAllTags] = useState<string[]>([])
+  const [allTags, setAllTags] = useState<{ name: string; slug: string; count: number }[]>([])
 
   useEffect(() => {
     if (!categorySlug) return
@@ -20,15 +20,13 @@ export default function BlogCategory() {
 
     const found = getPostsByCategory(categorySlug)
     const cats = getAllCategories()
-    const allPosts = getAllPosts()
 
     const catInfo = cats.find(c => c.slug === categorySlug)
     const displayName = catInfo?.name ?? categorySlug.replace(/-/g, ' ')
-    const tags = Array.from(new Set(allPosts.flatMap(p => p.tags ?? []))).sort()
 
     setPosts(found)
     setCategoryName(displayName)
-    setAllTags(tags)
+    setAllTags(getAllTags().filter(t => t.count >= 3))
 
     const rawCatDescription = `Browse all ${displayName} articles on ListingIgnite — practical guides and strategies for real estate agents.`
     const catDescription = rawCatDescription.length > 155
@@ -131,7 +129,7 @@ export default function BlogCategory() {
                 <h4 style={s.tagsHeading}>Popular Topics</h4>
                 <div style={s.tagList}>
                   {allTags.map(tag => (
-                    <Link key={tag} to={`/blog/tag/${tagToSlug(tag)}`} style={s.tag}>{tag}</Link>
+                    <Link key={tag.slug} to={`/blog/tag/${tag.slug}`} style={s.tag}>{tag.name}</Link>
                   ))}
                 </div>
               </div>
