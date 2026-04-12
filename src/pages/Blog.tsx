@@ -5,8 +5,10 @@ import type { PostMeta } from '../lib/blog'
 import { setPageMeta, injectJsonLd, removeJsonLd } from '../lib/pageMeta'
 import Logo from '../components/Logo'
 import AppFooter from '../components/AppFooter'
+import { useAuth } from '../context/AuthContext'
 
 export default function Blog() {
+  const { session } = useAuth()
   const [posts, setPosts] = useState<PostMeta[]>([])
   const [categories, setCategories] = useState<{ name: string; slug: string; count: number }[]>([])
 
@@ -64,7 +66,15 @@ export default function Blog() {
           <Link to="/" style={{ textDecoration: 'none' }}>
             <Logo />
           </Link>
-          <Link to="/login" style={s.navSignIn}>Sign In</Link>
+          {session ? (
+            <Link to="/dashboard" style={s.navGetStarted}>Dashboard →</Link>
+          ) : (
+            <div style={s.navRight}>
+              <Link to="/pricing" style={s.navLink}>Pricing</Link>
+              <Link to="/login" style={s.navSignIn}>Sign In</Link>
+              <Link to="/login" style={s.navGetStarted}>Get Started Free →</Link>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -216,15 +226,36 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  navRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  navLink: {
+    fontSize: '14px',
+    color: '#a0a8b8',
+    textDecoration: 'none',
+    fontWeight: '500',
+  },
   navSignIn: {
-    padding: '8px 20px',
+    padding: '8px 16px',
     background: 'transparent',
     border: '1px solid #3a3a4a',
-    borderRadius: '8px',
+    borderRadius: '7px',
     color: '#a0a8b8',
     fontSize: '14px',
     fontWeight: '500',
     textDecoration: 'none',
+  },
+  navGetStarted: {
+    padding: '8px 18px',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
+    borderRadius: '7px',
+    color: '#ffffff',
+    fontSize: '14px',
+    fontWeight: '700',
+    textDecoration: 'none',
+    boxShadow: '0 4px 14px rgba(139,47,232,0.35)',
   },
   headerOuter: {
     borderBottom: '1px solid #1e1e28',

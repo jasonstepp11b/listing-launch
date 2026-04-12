@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
+import { useAuth } from '../context/AuthContext'
 
 const FEATURES = [
   {
@@ -78,6 +79,7 @@ const FAQ = [
 
 export default function Landing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const { session } = useAuth()
 
   return (
     <div style={s.page}>
@@ -86,10 +88,16 @@ export default function Landing() {
       <nav style={s.nav}>
         <div style={s.navInner}>
           <Logo />
-          <div style={s.navRight}>
-            <Link to="/blog" style={s.navBlogLink}>Blog</Link>
-            <Link to="/login" style={s.navSignIn}>Sign In</Link>
-          </div>
+          {session ? (
+            <Link to="/dashboard" style={s.navGetStarted}>Dashboard →</Link>
+          ) : (
+            <div style={s.navRight}>
+              <Link to="/blog" style={s.navLink}>Blog</Link>
+              <Link to="/pricing" style={s.navLink}>Pricing</Link>
+              <Link to="/login" style={s.navSignIn}>Sign In</Link>
+              <Link to="/login" style={s.navGetStarted}>Get Started Free →</Link>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -284,22 +292,32 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '16px',
   },
-  navBlogLink: {
+  navLink: {
     fontSize: '14px',
     color: '#a0a8b8',
     textDecoration: 'none',
     fontWeight: '500',
   },
   navSignIn: {
-    padding: '8px 20px',
+    padding: '8px 16px',
     background: 'transparent',
     border: '1px solid #3a3a4a',
     borderRadius: '7px',
-    color: '#d1d5db',
+    color: '#a0a8b8',
     fontSize: '14px',
     fontWeight: '500',
     textDecoration: 'none',
-    transition: 'border-color 0.15s',
+  },
+  navGetStarted: {
+    padding: '8px 18px',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
+    border: 'none',
+    borderRadius: '7px',
+    color: '#ffffff',
+    fontSize: '14px',
+    fontWeight: '700',
+    textDecoration: 'none',
+    boxShadow: '0 4px 14px rgba(139,47,232,0.35)',
   },
 
   // ── Hero

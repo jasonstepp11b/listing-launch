@@ -16,6 +16,7 @@ import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
 import BlogCategory from './pages/BlogCategory'
 import BlogTag from './pages/BlogTag'
+import Pricing from './pages/Pricing'
 
 // Authenticated users go straight to /dashboard; everyone else sees the landing page.
 function RootRoute() {
@@ -66,6 +67,7 @@ export default function App() {
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/blog" element={<Blog />} />

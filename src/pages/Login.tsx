@@ -130,7 +130,7 @@ export default function Login() {
         <h1 style={s.heading}>ListingIgnite</h1>
         <p style={s.subheading}>
           {isSignup
-            ? 'Create your free account — no credit card required.'
+            ? 'Create your free account and get 3 free listings — no credit card required.'
             : 'Instant marketing content for every listing.'}
         </p>
 
