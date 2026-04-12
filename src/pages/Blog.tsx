@@ -157,18 +157,20 @@ function PostCard({ post, formatDate }: { post: PostMeta; formatDate: (d: string
   return (
     <div style={c.card}>
       {/* Image */}
-      {post.featuredImage && !imgError ? (
-        <img
-          src={post.featuredImage}
-          alt={post.title}
-          style={c.image}
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div style={c.imagePlaceholder}>
-          <span style={c.placeholderIcon}>✦</span>
-        </div>
-      )}
+      <Link to={`/blog/${post.slug}`} style={{ display: 'block', textDecoration: 'none' }}>
+        {post.featuredImage && !imgError ? (
+          <img
+            src={post.featuredImage}
+            alt={post.title}
+            style={c.image}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div style={c.imagePlaceholder}>
+            <span style={c.placeholderIcon}>✦</span>
+          </div>
+        )}
+      </Link>
 
       {/* Content */}
       <div style={c.body}>
@@ -177,7 +179,7 @@ function PostCard({ post, formatDate }: { post: PostMeta; formatDate: (d: string
             <Link to={`/blog/tag/${tagToSlug(post.tags[0])}`} style={c.tag}>{post.tags[0]}</Link>
           </div>
         )}
-        <h2 style={c.title}>{post.title}</h2>
+        <h2 style={c.title}><Link to={`/blog/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>{post.title}</Link></h2>
         {post.excerpt && <p style={c.excerpt}>{post.excerpt}</p>}
         <div style={c.footer}>
           <span style={c.date}>{formatDate(post.date)}</span>
