@@ -255,18 +255,20 @@ function RelatedPostCard({ post }: { post: PostMeta }) {
   return (
     <div style={r.card}>
       {/* Image */}
-      {post.featuredImage && !imgError ? (
-        <img
-          src={post.featuredImage}
-          alt={post.title}
-          style={r.image}
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div style={r.imagePlaceholder}>
-          <span style={r.placeholderIcon}>✦</span>
-        </div>
-      )}
+      <Link to={`/blog/${post.slug}`} style={{ display: 'block', textDecoration: 'none' }}>
+        {post.featuredImage && !imgError ? (
+          <img
+            src={post.featuredImage}
+            alt={post.title}
+            style={r.image}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div style={r.imagePlaceholder}>
+            <span style={r.placeholderIcon}>✦</span>
+          </div>
+        )}
+      </Link>
 
       {/* Body */}
       <div style={r.body}>
@@ -278,7 +280,7 @@ function RelatedPostCard({ post }: { post: PostMeta }) {
             {post.category}
           </Link>
         )}
-        <h3 style={r.title}>{post.title}</h3>
+        <h3 style={r.title}><Link to={`/blog/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>{post.title}</Link></h3>
         {post.excerpt && <p style={r.excerpt}>{post.excerpt}</p>}
         <Link to={`/blog/${post.slug}`} style={r.readMore}>Read More →</Link>
       </div>
@@ -723,8 +725,10 @@ const r: Record<string, React.CSSProperties> = {
   image: {
     width: '100%',
     maxWidth: '100%',
-    height: '180px',
+    overflow: 'hidden',
+    height: '200px',
     objectFit: 'cover',
+    objectPosition: 'top center',
     display: 'block',
   },
   imagePlaceholder: {
