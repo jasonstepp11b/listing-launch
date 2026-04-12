@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getPostsByCategory, getAllCategories, getAllTags } from '../lib/blog'
+import { getPostsByCategory, getAllCategories, getAllTags, tagToSlug } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
 import { setPageMeta } from '../lib/pageMeta'
 import Logo from '../components/Logo'
