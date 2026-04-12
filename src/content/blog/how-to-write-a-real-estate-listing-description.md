@@ -270,6 +270,8 @@ That's exactly what ListingIgnite is built for. Paste your property details into
 
 For a complete guide to real estate video marketing, read: [Real Estate Video Marketing: The Complete Guide for Agents..](https://listingignite.com/blog/real-estate-video-marketing)
 
+If you want to learn how top Agents are using email, check out [Real Estate Email Marketing: The Complete Guide for Agents.](https://listingignite.com/blog/real-estate-agent-email-marketing)
+
 Your next listing is waiting. [Get your full marketing kit at ListingIgnite.](https://listingignite.com)
 
 ---

@@ -90,6 +90,8 @@ Your email list is one of the most underused tools in real estate. Every new lis
 
 Keep it simple. One email, strong subject line, great photo, key details, and a link to the property. A newsletter works too, especially for agents who want to stay top of mind between transactions. Buyers and sellers both respond to consistent, useful communication from an agent they trust.
 
+To learn more about how succesful agents use Email Marketing, check out this post: [Real Estate Email Marketing: The Complete Guide for Agents.](https://listingignite.com/blog/real-estate-agent-email-marketing)
+
 ### Social Media Marketing
 
 Every property deserves its own social media push. Post across your active platforms: Facebook and YouTube for reach, Instagram for visuals. Vary the content: listing photos one day, a walkthrough clip the next, a just-listed graphic after that.

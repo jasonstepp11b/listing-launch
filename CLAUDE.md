@@ -252,28 +252,120 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 
 ---
 
-## Branding & Design
+## Analytics & SEO
 
-### Brand Files
-- `BRAND-VOICE.md` — brand voice, copy principles, tagline, on/off-brand examples
-- `STYLE-GUIDE.md` — colors, typography, spacing, component styles
-- `src/pages/StyleGuide.tsx` — visual style guide at `/style-guide` (dev reference only)
+### Google Analytics 4
+- **Measurement ID:** `G-E3GJZ5DGWS`
+- **Implementation:** Script tags in `index.html`
+- **Key Events configured:**
+  - `dashboard_visit` — fires when `page_location` contains `/dashboard` (user signed up/logged in)
+  - `purchase` — kept for future Stripe integration
+- **Note:** `close_convert_lead` and `qualify_lead` have been unmarked as key events
+- **Pending:** Mark `dashboard_visit` as key event once it appears in Recent Events tab (may take 24hrs)
+- **Pending:** Link Google Search Console to GA4 (Admin → Property Settings → Search Console Links)
+- **Pending:** Filter internal traffic (Admin → Data Streams → Configure tag settings → Define internal traffic → add home IP)
 
-### Logo & Favicon
-- Flame icon: `src/assets/logo-icon.svg`
-- Logo component: `src/components/Logo.tsx` (icon + wordmark, accepts `size` prop: sm/md/lg)
-- Favicons: `public/favicon-16.png`, `public/favicon-32.png`
-- App icons: `public/logo-192.png`, `public/logo-512.png`
-- Open Graph image: `public/og-image.png` (1200x630px)
+### Google Search Console
+- **Property:** listingignite.com — verified ✅
+- **Sitemap:** `https://listingignite.com/sitemap.xml` — submitted ✅
+
+### Sitemap
+- Auto-generated at build time via `scripts/generate-sitemap.mjs`
+- Includes all static pages, blog posts, category pages, and tag pages
+- Saved to `public/sitemap.xml`
+- Regenerated automatically on every Vercel deployment
+
+---
+
+## Blog System
+
+### Architecture
+- Blog index: `src/pages/Blog.tsx` at `/blog`
+- Blog post: `src/pages/BlogPost.tsx` at `/blog/:slug`
+- Category pages: `src/pages/BlogCategory.tsx` at `/blog/category/:category`
+- Tag pages: `src/pages/BlogTag.tsx` at `/blog/tag/:tag`
+- Posts: markdown files in `src/content/blog/`
+- Images: `public/blog/images/`
+- Uses `import.meta.glob` (NOT fs) for Vite compatibility
+
+### Frontmatter Schema
+```yaml
+---
+title: "Your Post Title Here"
+date: "2026-04-09"
+excerpt: "Shown on blog index card. Under 160 characters."
+description: "Meta description for Google. 110-160 characters."
+featuredImage: "/blog/images/your-slug.jpg"
+author: "Jason Stepp"
+category: "Category Name"
+tags: ["tag one", "tag two", "tag three"]
+published: true
+---
+```
+
+### Blog Features
+- **Table of contents** — auto-generated from H2 headings, shown if 2+ H2s exist
+- **Related posts** — shown at bottom of each post, matched by category and tags
+- **Inline CTA** — insert `<!--cta-->` anywhere in markdown to place the CTA banner mid-post
+- **Auto CTA** — `<BlogCTA />` automatically appended to every post above "Keep Reading"
+- **Category pages** — `/blog/category/:category` — fully indexed by Google
+- **Tag pages** — `/blog/tag/:tag` — dynamically noindexed if fewer than 3 posts
+- **Schema markup** — JSON-LD BlogPosting + BreadcrumbList on all post pages
+- **OG tags** — per-post via prerender script using absolute URLs
+- **2-column layout** on blog index and category/tag pages (desktop)
+
+### Blog Post Template
+- Template file: `src/content/blog/template.md` (published: false — never shown on site)
+- Copy this file for every new post, rename to `{slug}.md`
+
+### Featured Image Workflow
+1. Open `tools/blog-image-generator.html` locally: `open tools/blog-image-generator.html`
+2. Enter post title, category, and slug
+3. Preview updates live in the browser
+4. Click "Download JPG" → save to `public/blog/images/{slug}.jpg`
+5. Reference in frontmatter: `featuredImage: "/blog/images/{slug}.jpg"`
+- **Design:** Dark gradient (#0c0c12→#150e1f), purple glow, flame logo, category pill, title, domain + tagline
+- **Dimensions:** 1200x630px JPG
+- **Note:** `tools/` is in `.gitignore` — never committed or deployed
+
+### Prerender Script (CRITICAL)
+- `scripts/prerender-blog.mjs` — generates static HTML for blog/category/tag pages at build time
+- Injects correct OG tags, title, description, and robots meta tag into each page's HTML
+- Tag pages with fewer than 3 posts get `noindex` injected automatically
+- **This is why OG images work for crawlers and social sharing**
+- Runs automatically as part of `npm run build`
+
+### Build Command
+```
+node scripts/generate-sitemap.mjs && tsc -b && vite build && node scripts/prerender-blog.mjs
+```
+
+### vercel.json (CRITICAL)
+Must use `"rewrites"` not `"routes"` — otherwise prerendered files are not served:
+```json
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+### New Blog Post Workflow
+1. Keyword research (Google Keyword Planner + Ubersuggest)
+2. Write post in dedicated Claude conversation (upload BRAND-VOICE.md + template.md)
+3. Optimize in NeuronWriter (use their word count target)
+4. Generate featured image: `open tools/blog-image-generator.html`
+5. Copy `template.md` → rename to `{slug}.md` → fill frontmatter + content
+6. Set `published: true`, add `featuredImage: "/blog/images/{slug}.jpg"`
+7. Commit and push → Vercel builds and prerenders automatically
 
 ---
 
 ## Key UX Principles
 
 - **Output presentation is the product.** Generated content must look polished and trustworthy.
-- Tabs should be clearly labeled, content should be well-formatted, and readable.
-- A loading state (with a progress indicator) is important — generation may take 5–15 seconds.
-- Saved listings should be accessible from a simple dashboard so agents can revisit past work.
 - **Editing is non-destructive.** Editing a listing never triggers a new AI generation or deducts credits.
 - **No hard deletes.** Listings are never permanently deleted — marked as `sold` or `inactive`.
 - **Edit modal pattern.** Listing editing is handled via `EditListingModal` component.
@@ -289,7 +381,6 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - Triggered from: pencil icon on dashboard cards, and "Edit Listing" button on listing detail page
 - Status section at top of modal — changes staged until "Save Changes" clicked
 - Uses timestamps in storage filenames to avoid browser caching issues
-- Scrollable to handle all fields on smaller screens
 
 ### `FeedbackButton` + `FeedbackModal`
 - `src/components/FeedbackButton.tsx` — floating button fixed to bottom right on all authenticated pages
@@ -298,43 +389,25 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - Submits via `send-email` Edge Function to jason@listingignite.com
 - Subject format: `[ListingIgnite Feedback] {topic} from {user name}`
 
+### `BlogCTA`
+- `src/components/BlogCTA.tsx` — full-width purple banner CTA
+- Auto-injected at bottom of every blog post above "Keep Reading"
+- Insert mid-post via `<!--cta-->` marker in markdown
+- Links to `https://listingignite.com/login`
+- Copy: "Your next listing is waiting." + subheadline + "Get Started Free →"
+
 ### Dashboard Cards
 - 3 columns desktop, 2 columns tablet, 1 column mobile
-- Each card: property image (or placeholder), address, price, property type, beds/baths, date
-- Two actions: "View Marketing Content →" and pencil icon (opens EditListingModal)
 - Filter tabs: Active / Sold / Inactive
 - Sold cards show 🎉 badge, Inactive cards show subtle "Inactive" badge
 
-### Listing Detail Page
-- Hero: property image, address, price, beds/baths/sqft, features, read-only status badge
-- Status badge: green (Active), gold (Sold), grey (Inactive)
-- "Edit Listing" button opens EditListingModal
-- Marketing content tabs below hero, each with copy button
-
 ### Landing Page (`src/pages/Landing.tsx`)
 - Route: `/` for unauthenticated users → authenticated users redirected to `/dashboard`
-- Sections: Nav, Hero, Problem, Features, How It Works (3 steps), FAQ (accordion), CTA, Footer
+- Sections: Nav, Hero, Problem, Features, How It Works, FAQ (accordion), CTA, Footer
 - Footer links to `/blog`, `/privacy`, `/terms`
-- Fully responsive (mobile, tablet, desktop)
-
-### Blog
-- Blog index: `src/pages/Blog.tsx` at `/blog`
-- Blog post layout: `src/pages/BlogPost.tsx` at `/blog/:slug`
-- Posts stored as markdown files in `src/content/blog/`
-- Images stored in `public/blog/images/`
-- Uses `import.meta.glob` (NOT fs) to load markdown files in Vite
-- Each post has frontmatter: `title`, `date`, `excerpt`, `featuredImage`, `author`, `tags`, `published`
-- Sidebar on desktop: "Get Started Free" CTA card + Recent Posts / Popular Tags
-- Sidebar stacks below content on mobile
-- Adding a new post: create `.md` file → add frontmatter → add image to `public/blog/images/` → commit and push
-
-### Legal Pages
-- `src/pages/PrivacyPolicy.tsx` at `/privacy`
-- `src/pages/Terms.tsx` at `/terms`
-- Content sourced from `legal-content.md` in project root
 
 ### Auth Pages
-- Login: `src/pages/Login.tsx` — Google OAuth + email/password, with "Forgot your password?" link
+- Login: `src/pages/Login.tsx` — Google OAuth + email/password, "Forgot your password?" link
 - Forgot Password: `src/pages/ForgotPassword.tsx` at `/forgot-password`
 - Reset Password: `src/pages/ResetPassword.tsx` at `/reset-password`
 - All auth emails sent from `noreply@listingignite.com` via Resend SMTP
@@ -347,6 +420,8 @@ supabase secrets list --project-ref fmcnfutdyqmwtommnryx
 - `STYLE-GUIDE.md` — colors, typography, component styles
 - `legal-content.md` — Privacy Policy and Terms of Service content
 - `database.sql` — Supabase schema SQL including RLS policies and profile trigger
+- `src/content/blog/template.md` — blog post template (published: false)
+- `tools/blog-image-generator.html` — local-only featured image generator (excluded from git)
 
 ---
 
@@ -443,13 +518,24 @@ Stripe for credit purchases and subscriptions. Webhooks update `credits_remainin
 - [x] Supabase Edge Functions (send-email + generate-content + add-to-kit)
 - [x] Resend account active and verified ✅
 - [x] Landing page live at listingignite.com (with FAQ accordion)
-- [x] Blog live at listingignite.com/blog (markdown-based)
+- [x] Blog live at listingignite.com/blog (markdown-based, 3 posts published)
+- [x] Blog SEO — meta tags, category pages, tag pages, schema markup, sitemap, robots.txt
+- [x] Blog CTA banner (auto-injected + mid-post via <!--cta-->)
+- [x] Blog table of contents (auto-generated from H2 headings)
+- [x] Blog related posts section
+- [x] Blog featured image generator (tools/blog-image-generator.html — local only)
+- [x] Blog post template (src/content/blog/template.md)
+- [x] OG images working via prerender script ✅
+- [x] vercel.json using rewrites for correct prerender routing
 - [x] Legal pages live (/privacy and /terms)
 - [x] Logo, favicon, and Open Graph image
 - [x] Brand voice (BRAND-VOICE.md) and style guide (STYLE-GUIDE.md)
-- [x] App footer on all authenticated pages
 - [x] Deployed to Vercel + custom domain (listingignite.com)
 - [x] First real user onboarded (Puerto Rico client) 🎉
-- [ ] First blog post (real SEO content)
+- [x] Google Analytics 4 (G-E3GJZ5DGWS) — tracking active ✅
+- [x] Google Search Console verified + sitemap submitted ✅
+- [ ] GA4 dashboard_visit — mark as key event once it appears in Recent Events (may take 24hrs)
+- [ ] Link Google Search Console to GA4 (Admin → Property Settings → Search Console Links)
+- [ ] Filter internal traffic in GA4 (add home IP address)
 - [ ] Admin panel
 - [ ] Stripe billing

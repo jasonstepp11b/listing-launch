@@ -26,6 +26,8 @@ Buyers spend more time watching online video than any other type of content - an
 
 For real estate professionals, video also works harder across more channels than any other marketing tool. Post it on YouTube, embed it on your listing page, share it on social, drop it in an email to your sphere of influence. One video, multiple touchpoints.
 
+If you wand to learn how Agents are using email, check this out: [Real Estate Email Marketing: The Complete Guide for Agents.](https://listingignite.com/blog/real-estate-agent-email-marketing)
+
 There's a business case too. Agents who use video consistently report more showings, stronger seller confidence, and a faster selling process overall. Buyers feel more prepared walking into a showing when they've already seen a video tour. Home sellers are more likely to list with an agent who can demonstrate a real marketing strategy - not just promise one.
 
 Video is also one of the fastest ways to build trust with potential clients before you ever speak to them. An agent introduction video, a market update, a quick FAQ answer - each one adds to your online presence and your credibility in the local market.
