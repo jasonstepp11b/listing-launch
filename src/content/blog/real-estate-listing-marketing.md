@@ -114,6 +114,8 @@ Most agents post photos. Fewer use video well. A short, well-lit walkthrough pos
 
 Video also gives you more channels to work with: YouTube for long-term SEO, Instagram Reels for reach, email for your sphere.
 
+For a complete guide to real estate video marketing, read: [Real Estate Video Marketing: The Complete Guide for Agents..](https://listingignite.com/blog/real-estate-video-marketing)
+
 ### Think Outside the Box With Creative Ideas for Local Marketing
 
 Digital gets most of the attention, but local real estate marketing still works. Door-knocking the neighborhood before an open house, mailing a just-listed postcard to surrounding homes, or partnering with a local business to cross-promote can all generate buyer interest that purely online efforts miss.

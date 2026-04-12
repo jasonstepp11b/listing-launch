@@ -268,6 +268,8 @@ Done right, a great listing description is part of your listing marketing that w
 
 That's exactly what ListingIgnite is built for. Paste your property details into a single form and get a complete marketing kit in seconds: MLS description, social posts, email blast, flyer copy, video script, and SEO landing page. Serious agents use it to write great listing descriptions at scale - and to get them done fast on every property.
 
+For a complete guide to real estate video marketing, read: [Real Estate Video Marketing: The Complete Guide for Agents..](https://listingignite.com/blog/real-estate-video-marketing)
+
 Your next listing is waiting. [Get your full marketing kit at ListingIgnite.](https://listingignite.com)
 
 ---
