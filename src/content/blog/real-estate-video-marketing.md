@@ -6,7 +6,7 @@ description: "Learn how to use real estate video marketing to win more listings,
 featuredImage: "/blog/images/real-estate-video-marketing.jpg"
 category: "Marketing"
 author: "Jason Stepp"
-tags: ["real estate video marketing", "video marketing", "real estate videos", "listing video", "content marketing"]
+tags: ["real estate marketing", "listing marketing", "mls","real estate video marketing", "video marketing", "real estate videos", "listing video", "content marketing"]
 published: true
 ---
 

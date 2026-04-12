@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllPosts, getAllCategories, tagToSlug } from '../lib/blog'
+import { getAllPosts, getAllCategories, getAllTags, tagToSlug } from '../lib/blog'
 import type { PostMeta } from '../lib/blog'
 import { setPageMeta, injectJsonLd, removeJsonLd } from '../lib/pageMeta'
 import Logo from '../components/Logo'
@@ -46,7 +46,7 @@ export default function Blog() {
     }
   }, [])
 
-  const allTags = Array.from(new Set(posts.flatMap(p => p.tags ?? []))).sort()
+  const allTags = getAllTags().filter(t => t.count >= 3)
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -119,7 +119,7 @@ export default function Blog() {
                 <h4 style={s.tagsHeading}>Popular Topics</h4>
                 <div style={s.tagList}>
                   {allTags.map(tag => (
-                    <Link key={tag} to={`/blog/tag/${tagToSlug(tag)}`} style={s.tag}>{tag}</Link>
+                    <Link key={tag.slug} to={`/blog/tag/${tag.slug}`} style={s.tag}>{tag.name}</Link>
                   ))}
                 </div>
               </div>

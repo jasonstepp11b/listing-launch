@@ -6,7 +6,7 @@ description: "Learn how to build a real estate agent email marketing strategy th
 featuredImage: "/blog/images/real-estate-agent-email-marketing.jpg"
 category: "Marketing"
 author: "Jason Stepp"
-tags: ["real estate agent email marketing", "real estate email marketing", "email marketing", "email campaign", "real estate marketing"]
+tags: ["listing marketing","real estate agent email marketing", "mls", "real estate email marketing", "email marketing", "email campaign", "real estate marketing"]
 published: true
 ---
 

@@ -6,7 +6,7 @@ description: "Learn how to write a real estate listing description that converts
 featuredImage: "/blog/images/how-to-write-a-real-estate-listing-description-that-actually-sells.jpg"
 category: "Marketing"
 author: "Jason Stepp"
-tags: ["real estate listing description", "listing description", "how to write a real estate listing description", "mls", "real estate listings"]
+tags: ["real estate marketing", "listing marketing","real estate listing description", "listing description", "how to write a real estate listing description", "mls", "real estate listings"]
 published: true
 ---
 
