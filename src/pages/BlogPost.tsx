@@ -327,12 +327,14 @@ function FeaturedImage({ src, alt }: { src?: string; alt: string }) {
 
   if (src && !failed) {
     return (
-      <img
-        src={src}
-        alt={alt}
-        style={s.featuredImage}
-        onError={() => setFailed(true)}
-      />
+      <div style={s.featuredImageWrap}>
+        <img
+          src={src}
+          alt={alt}
+          style={s.featuredImage}
+          onError={() => setFailed(true)}
+        />
+      </div>
     )
   }
 
@@ -612,16 +614,20 @@ const s: Record<string, React.CSSProperties> = {
     gap: '20px',
   },
   notFoundText: { fontSize: '16px', color: '#6b7280', margin: 0 },
-  featuredImage: {
+  featuredImageWrap: {
     width: '100%',
-    maxWidth: '100%',
-    overflow: 'hidden',
-    height: '380px',
-    objectFit: 'cover',
+    aspectRatio: '1200 / 630',
     borderRadius: '14px',
-    display: 'block',
+    overflow: 'hidden',
     marginBottom: '32px',
     border: '1px solid #2e2e3a',
+    boxSizing: 'border-box' as const,
+  },
+  featuredImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover' as const,
+    display: 'block',
   },
   featuredImagePlaceholder: {
     width: '100%',
