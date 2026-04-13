@@ -126,6 +126,18 @@ button, input, textarea, select {
   .form-section-pad { padding: 20px 16px; }
 }
 
+/* Landing page nav: desktop vs mobile */
+.landing-nav-desktop { display: flex; }
+.landing-nav-mobile  { display: none; }
+/* Hamburger button needs flex alignment */
+button.landing-nav-mobile { align-items: center; justify-content: center; flex-direction: column; }
+/* Mobile dropdown needs column layout */
+div.landing-nav-mobile { flex-direction: column; }
+@media (max-width: 767px) {
+  .landing-nav-desktop { display: none !important; }
+  .landing-nav-mobile  { display: flex !important; }
+}
+
 /* Responsive grids for Landing page */
 
 @media (max-width: 860px) {

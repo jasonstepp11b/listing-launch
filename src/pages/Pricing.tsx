@@ -10,6 +10,7 @@ type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
 export default function Pricing() {
   const [email, setEmail] = useState('')
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,12 +44,30 @@ export default function Pricing() {
           <Link to="/" style={{ textDecoration: 'none' }}>
             <Logo />
           </Link>
-          <div style={s.navRight}>
+          <div style={s.navRight} className="landing-nav-desktop">
             <Link to="/blog" style={s.navLink}>Blog</Link>
             <Link to="/login" style={s.navSignIn}>Sign In</Link>
             <Link to="/login" style={s.navGetStarted}>Get Started Free →</Link>
           </div>
+          <button
+            style={s.hamburger}
+            className="landing-nav-mobile"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            type="button"
+          >
+            <span style={s.hamburgerLine} />
+            <span style={s.hamburgerLine} />
+            <span style={s.hamburgerLine} />
+          </button>
         </div>
+        {menuOpen && (
+          <div style={s.mobileMenu} className="landing-nav-mobile">
+            <Link to="/blog" style={s.mobileLink} onClick={() => setMenuOpen(false)}>Blog</Link>
+            <Link to="/login" style={s.mobileLinkSignIn} onClick={() => setMenuOpen(false)}>Sign In</Link>
+            <Link to="/login" style={s.mobileLinkCta} onClick={() => setMenuOpen(false)}>Get Started Free →</Link>
+          </div>
+        )}
       </nav>
 
       {/* Content */}
@@ -167,6 +186,62 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: '700',
     textDecoration: 'none',
     boxShadow: '0 4px 14px rgba(139,47,232,0.35)',
+  },
+  hamburger: {
+    flexDirection: 'column' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '5px',
+    width: '36px',
+    height: '36px',
+    background: 'transparent',
+    border: '1px solid #3a3a4a',
+    borderRadius: '7px',
+    cursor: 'pointer',
+    padding: '0',
+  },
+  hamburgerLine: {
+    display: 'block',
+    width: '16px',
+    height: '2px',
+    background: '#a0a8b8',
+    borderRadius: '2px',
+  },
+  mobileMenu: {
+    flexDirection: 'column' as const,
+    padding: '12px 24px 20px',
+    borderTop: '1px solid rgba(46,46,58,0.6)',
+    background: 'rgba(12,12,18,0.97)',
+    gap: '4px',
+  },
+  mobileLink: {
+    fontSize: '16px',
+    fontWeight: '500',
+    color: '#a0a8b8',
+    textDecoration: 'none',
+    padding: '12px 0',
+    borderBottom: '1px solid rgba(46,46,58,0.4)',
+  },
+  mobileLinkSignIn: {
+    fontSize: '16px',
+    fontWeight: '500',
+    color: '#a0a8b8',
+    textDecoration: 'none',
+    padding: '12px 0',
+    borderBottom: '1px solid rgba(46,46,58,0.4)',
+  },
+  mobileLinkCta: {
+    display: 'block',
+    marginTop: '12px',
+    padding: '14px 20px',
+    background: 'linear-gradient(135deg, #8b2fe8, #7c3aed)',
+    color: '#fff',
+    textDecoration: 'none',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: '700',
+    textAlign: 'center' as const,
+    boxShadow: '0 4px 14px rgba(139,47,232,0.4)',
   },
   content: {
     flex: 1,
