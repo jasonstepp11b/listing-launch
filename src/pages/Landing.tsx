@@ -146,7 +146,7 @@ export default function Landing() {
           <div style={s.videoWrap}>
             <iframe
               style={s.videoFrame}
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&showinfo=0"
+              src="https://www.youtube.com/embed/F7GwnxuRmw8?rel=0&modestbranding=1&showinfo=0"
               title="ListingIgnite demo"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
