@@ -314,6 +314,18 @@ published: true
 - **OG tags** — per-post via prerender script using absolute URLs
 - **2-column layout** on blog index and category/tag pages (desktop)
 
+### Blog Card UX
+- Featured image, post title, and "Read More" link are all clickable on blog index, category, and tag pages
+- Keep Reading section (bottom of each post) — same clickable pattern applied
+- Keep Reading featured images use `object-fit: cover` and `object-position: top center` — anchors to top so logo is always visible, cropping happens at the bottom
+- Blog post featured images are always **1200×630px JPG** — keep this in mind for any image container sizing
+
+### Popular Topics Widget
+- Shown in the sidebar on `/blog`, `/blog/category/:category`, and `/blog/tag/:tag`
+- **Only displays tags associated with 3 or more posts** — tags with fewer than 3 posts are hidden
+- Sorted by post count descending (most posts first)
+- This threshold matches the `noindex` rule on tag pages (also 3+ posts)
+
 ### Blog Post Template
 - Template file: `src/content/blog/template.md` (published: false — never shown on site)
 - Copy this file for every new post, rename to `{slug}.md`
@@ -363,6 +375,73 @@ Must use `"rewrites"` not `"routes"` — otherwise prerendered files are not ser
 
 ---
 
+## Marketing Site & Navigation
+
+### Marketing Nav (unauthenticated only)
+- Shown on all marketing/public pages: `/`, `/blog`, `/blog/*`, `/pricing`, `/privacy`, `/terms`
+- **Never shown on authenticated app pages** (dashboard, new listing, listing detail, account, etc.)
+- Links: Logo | Blog (`/blog`) | Pricing (`/pricing`) | Sign In (ghost button) | Get Started Free → (filled purple button)
+- Both auth buttons link to `/login`
+- **Mobile:** Hamburger menu (☰) replaces nav links and auth buttons below ~768px. Tapping opens a full-width dropdown with all nav items. Tapping any link closes the menu.
+- **Desktop:** Inline nav, no hamburger
+
+### Pricing Page (`src/pages/Pricing.tsx`)
+- Route: `/pricing`
+- Coming soon page — no fake tiers or placeholder numbers
+- Headline: "Simple, transparent pricing."
+- Subheadline: "Plans are coming soon. Join the waitlist to be first to know."
+- Waitlist email capture form — saves to Supabase `waitlist` table + calls `add-to-kit` Edge Function (same as paywall waitlist)
+- Matches marketing site visual style (dark background, brand fonts/colors)
+
+### Landing Page (`src/pages/Landing.tsx`)
+- Route: `/` for unauthenticated users → authenticated users redirected to `/dashboard`
+- Sections: Nav, Hero, Problem, Features, How It Works, FAQ (accordion), CTA, Footer
+- Footer links to `/blog`, `/pricing`, `/privacy`, `/terms`
+- **How It Works step 2:** Do NOT mention "Claude" or any specific AI by name — lead with the result, not the technology (per BRAND-VOICE.md)
+
+---
+
+## Video Production
+
+### Demo Video
+- **Status:** MVP version complete ✅
+- **Tools used:** Loom (recording) + DaVinci Resolve (editing)
+- **Format:** Screen recording with voiceover, no face cam
+- **Length:** ~2–3 minutes
+- **Audience:** Any real estate agent who might be interested in ListingIgnite
+- **Goal:** Show what the product does and drive free signups
+- Plan to invest more time learning DaVinci Resolve to improve future video quality
+
+### Video Production Workflow
+- All video content (demo videos, YouTube tutorials, social clips, etc.) is handled in a **dedicated Claude conversation**
+- Upload `CLAUDE.md` and `BRAND-VOICE.md` to that conversation for full product and brand context
+- Recording setup: Loom desktop app (Mac), screen + voiceover, no face cam
+- Editing: DaVinci Resolve
+
+---
+
+## Claude Code Model Notes
+
+### Current model: Claude Sonnet 4.6 (default)
+This is the right choice for day-to-day development work on ListingIgnite. The workflow improvements we've made (tighter prompts, proper git workflow) have resolved the issues we encountered, and the cost/performance tradeoff favors staying on Sonnet 4.6 for now.
+
+### ⚠️ Switch to Claude Opus 4.7 when starting Stripe or Admin Panel
+Claude Opus 4.7 (released April 16, 2026) showed a ~20% improvement on agentic coding benchmarks over Sonnet 4.6. Stripe integration and the admin panel are complex, multi-file, long-horizon tasks where that improvement is worth the ~1.35x token cost increase.
+
+**To switch models in Claude Code:**
+```bash
+# During a session:
+/model claude-opus-4-7
+
+# Or permanently via environment variable:
+ANTHROPIC_MODEL=claude-opus-4-7
+
+# Requires Claude Code v2.1.111 or later — update first:
+claude update
+```
+
+---
+
 ## Key UX Principles
 
 - **Output presentation is the product.** Generated content must look polished and trustworthy.
@@ -401,16 +480,38 @@ Must use `"rewrites"` not `"routes"` — otherwise prerendered files are not ser
 - Filter tabs: Active / Sold / Inactive
 - Sold cards show 🎉 badge, Inactive cards show subtle "Inactive" badge
 
-### Landing Page (`src/pages/Landing.tsx`)
-- Route: `/` for unauthenticated users → authenticated users redirected to `/dashboard`
-- Sections: Nav, Hero, Problem, Features, How It Works, FAQ (accordion), CTA, Footer
-- Footer links to `/blog`, `/privacy`, `/terms`
-
 ### Auth Pages
 - Login: `src/pages/Login.tsx` — Google OAuth + email/password, "Forgot your password?" link
 - Forgot Password: `src/pages/ForgotPassword.tsx` at `/forgot-password`
 - Reset Password: `src/pages/ResetPassword.tsx` at `/reset-password`
 - All auth emails sent from `noreply@listingignite.com` via Resend SMTP
+
+---
+
+## Git & Deployment Workflow
+
+### CRITICAL: Always follow this sequence for every update
+```bash
+# 1. Create a feature branch
+git checkout -b your-branch-name
+
+# 2. Make changes via Claude Code
+
+# 3. Test locally (npm run dev)
+
+# 4. Commit on the feature branch
+git add -A
+git commit -m "your commit message"
+
+# 5. Merge into main and push — this triggers Vercel deployment
+git checkout main
+git merge your-branch-name
+git push origin main
+```
+
+> ⚠️ **Never push from a feature branch directly** — Vercel only deploys from `main`. Pushing from a feature branch will not trigger a deployment.
+
+> ⚠️ **Always commit before merging** — Claude Code changes that aren't committed before the merge will not be included in the deployment. Run `git status` to verify there are no uncommitted changes before merging.
 
 ---
 
@@ -483,6 +584,20 @@ Requires new `projects` table and refactoring `listings` into `campaigns`.
 ### 💳 Stripe Billing & Subscription Tiers
 **Priority: High — required for revenue**
 Stripe for credit purchases and subscriptions. Webhooks update `credits_remaining` in Supabase.
+> ⚠️ Switch to Claude Opus 4.7 in Claude Code before starting this work — see Claude Code Model Notes above.
+
+---
+
+### 🍪 Cookie Consent Banner
+**Priority: Low — revisit before activating any ad pixels**
+Not needed yet. Will be required before launching Google Ads, Meta Ads, or Microsoft Ads campaigns, as those involve third-party tracking cookies. A simple consent library (e.g. `cookie-consent`) should make this a quick add when the time comes.
+
+---
+
+### 📣 Ad Pixel Setup
+**Priority: Low — future marketing initiative**
+Planned ad platforms: Google Ads, Meta (Facebook/Instagram), Microsoft Ads.
+Cookie consent banner must be implemented before any pixels are activated.
 
 ---
 
@@ -518,7 +633,7 @@ Stripe for credit purchases and subscriptions. Webhooks update `credits_remainin
 - [x] Supabase Edge Functions (send-email + generate-content + add-to-kit)
 - [x] Resend account active and verified ✅
 - [x] Landing page live at listingignite.com (with FAQ accordion)
-- [x] Blog live at listingignite.com/blog (markdown-based, 3 posts published)
+- [x] Blog live at listingignite.com/blog (markdown-based, 4 posts published)
 - [x] Blog SEO — meta tags, category pages, tag pages, schema markup, sitemap, robots.txt
 - [x] Blog CTA banner (auto-injected + mid-post via <!--cta-->)
 - [x] Blog table of contents (auto-generated from H2 headings)
@@ -534,8 +649,20 @@ Stripe for credit purchases and subscriptions. Webhooks update `credits_remainin
 - [x] First real user onboarded (Puerto Rico client) 🎉
 - [x] Google Analytics 4 (G-E3GJZ5DGWS) — tracking active ✅
 - [x] Google Search Console verified + sitemap submitted ✅
+- [x] Blog card images and titles clickable (Blog, BlogCategory, BlogTag pages) ✅
+- [x] Keep Reading section — images/titles clickable, image cropping fixed ✅
+- [x] Popular Topics widget — 3+ post minimum, all pages (Blog, BlogCategory, BlogTag) ✅
+- [x] Marketing nav — Blog + Pricing links, dual auth buttons, hidden for authenticated users ✅
+- [x] Pricing page live at /pricing — coming soon with waitlist capture ✅
+- [x] Landing page How It Works step 2 — removed AI brand mention ✅
+- [x] Mobile hamburger menu for marketing nav ✅
+- [x] Blog post featured image — fixed mobile overflow ✅
+- [x] MVP demo video recorded (Loom + DaVinci Resolve) ✅
+- [x] Dedicated video production Claude conversation set up ✅
 - [ ] GA4 dashboard_visit — mark as key event once it appears in Recent Events (may take 24hrs)
 - [ ] Link Google Search Console to GA4 (Admin → Property Settings → Search Console Links)
 - [ ] Filter internal traffic in GA4 (add home IP address)
-- [ ] Admin panel
-- [ ] Stripe billing
+- [ ] Admin panel (switch to Claude Opus 4.7 in Claude Code first)
+- [ ] Stripe billing (switch to Claude Opus 4.7 in Claude Code first)
+- [ ] Cookie consent banner (before ad pixels go live)
+- [ ] Ad pixel setup (Google Ads, Meta, Microsoft Ads)

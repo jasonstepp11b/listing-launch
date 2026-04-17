@@ -141,6 +141,19 @@ export default function Landing() {
             Paste in your listing details and get a complete marketing package — MLS description,
             social posts, email blast, flyer copy, video script, and SEO page — all at once.
           </p>
+
+          {/* ── Demo video ── */}
+          <div style={s.videoWrap}>
+            <iframe
+              style={s.videoFrame}
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&showinfo=0"
+              title="ListingIgnite demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          <p style={s.videoCaption}>See how it works — 90 seconds</p>
+
           <div style={s.ctaStack}>
             <Link to="/login" style={s.heroCta}>Get Started Free →</Link>
             <p style={s.heroNoCc}>Start free — includes 3 listings. No credit card required.</p>
@@ -450,6 +463,34 @@ const s: Record<string, React.CSSProperties> = {
     maxWidth: '580px',
     marginLeft: 'auto',
     marginRight: 'auto',
+  },
+  videoWrap: {
+    position: 'relative' as const,
+    width: '100%',
+    maxWidth: '800px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginBottom: '12px',
+    aspectRatio: '16 / 9',
+    borderRadius: '14px',
+    overflow: 'hidden',
+    border: '1px solid rgba(139, 47, 232, 0.35)',
+    boxShadow: '0 0 40px rgba(139, 47, 232, 0.18), 0 8px 32px rgba(0, 0, 0, 0.5)',
+  },
+  videoFrame: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    display: 'block',
+  },
+  videoCaption: {
+    fontSize: '13px',
+    color: '#6b7280',
+    margin: '0 0 40px',
+    textAlign: 'center' as const,
   },
   heroCta: {
     display: 'inline-block',
