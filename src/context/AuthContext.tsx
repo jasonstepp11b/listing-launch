@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { callEdgeFunction } from '../lib/edgeFunction'
 
 interface AuthContextValue {
   session: Session | null
@@ -46,8 +47,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session?.user) fetchCredits(session.user.id)
-      else setCredits(null)
+      if (session?.user) {
+        fetchCredits(session.user.id)
+        // Detect new Google OAuth signups: flag set in Login.tsx before redirect
+        if (sessionStorage.getItem('li_signup_check') === '1') {
+          sessionStorage.removeItem('li_signup_check')
+          const createdAt = new Date(session.user.created_at).getTime()
+          const isNewUser = Date.now() - createdAt < 2 * 60 * 1000 // within last 2 minutes
+          if (isNewUser) {
+            const name = session.user.user_metadata?.full_name ?? session.user.email ?? 'Unknown'
+            const email = session.user.email ?? ''
+            const time = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })
+            callEdgeFunction('send-email', {
+              to: 'jason@listingignite.com',
+              subject: `🆕 New ListingIgnite Signup — ${name}`,
+              html: `
+                <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:8px;">
+                  <h2 style="color:#111827;margin:0 0 20px;font-size:20px;">🆕 New Signup</h2>
+                  <table style="width:100%;border-collapse:collapse;">
+                    <tr><td style="padding:8px 0;color:#6b7280;width:100px;vertical-align:top;">Name</td><td style="padding:8px 0;color:#111827;font-weight:600;">${name}</td></tr>
+                    <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Email</td><td style="padding:8px 0;color:#111827;">${email}</td></tr>
+                    <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Method</td><td style="padding:8px 0;color:#111827;">Google OAuth</td></tr>
+                    <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Time</td><td style="padding:8px 0;color:#111827;">${time}</td></tr>
+                  </table>
+                </div>
+              `,
+            }).catch(() => {})
+          }
+        }
+      } else {
+        setCredits(null)
+      }
     })
 
     return () => subscription.unsubscribe()

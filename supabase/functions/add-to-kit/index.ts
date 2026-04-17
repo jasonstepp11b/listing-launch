@@ -96,6 +96,39 @@ Deno.serve(async (req: Request) => {
 
   console.log('[add-to-kit] Success — subscriber id:', kitData.subscription?.subscriber?.id)
 
+  // Fire-and-forget waitlist lead notification — never blocks the response
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    const time = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })
+    const displayName = firstName || 'N/A'
+    await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${anonKey}`,
+        'apikey': anonKey ?? '',
+      },
+      body: JSON.stringify({
+        to: 'jason@listingignite.com',
+        subject: `🔥 New Waitlist Lead — ${displayName}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:8px;">
+            <h2 style="color:#111827;margin:0 0 20px;font-size:20px;">🔥 New Waitlist Lead</h2>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="padding:8px 0;color:#6b7280;width:100px;vertical-align:top;">Name</td><td style="padding:8px 0;color:#111827;font-weight:600;">${displayName}</td></tr>
+              <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Email</td><td style="padding:8px 0;color:#111827;">${email}</td></tr>
+              <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Time</td><td style="padding:8px 0;color:#111827;">${time}</td></tr>
+            </table>
+            <p style="margin:16px 0 0;padding:12px;background:#fef3c7;border-radius:6px;color:#92400e;font-size:14px;">This user has used all 3 free credits.</p>
+          </div>
+        `,
+      }),
+    })
+  } catch (err) {
+    console.warn('[add-to-kit] Notification email failed (non-blocking):', err)
+  }
+
   return new Response(
     JSON.stringify({ success: true }),
     { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

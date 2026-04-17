@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { callEdgeFunction } from '../lib/edgeFunction'
 
 type Mode = 'login' | 'signup' | 'confirmed'
 
@@ -37,11 +38,14 @@ export default function Login() {
   async function handleGoogleSignIn() {
     setSubmitting(true)
     setError(null)
+    // Flag checked after OAuth redirect to detect new Google signups
+    sessionStorage.setItem('li_signup_check', '1')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/dashboard` },
     })
     if (error) {
+      sessionStorage.removeItem('li_signup_check')
       setError('Google sign-in failed. Please try again.')
       setSubmitting(false)
     }
@@ -94,6 +98,14 @@ export default function Login() {
       setSubmitting(false)
     } else {
       setMode('confirmed')
+      // Fire-and-forget signup notification — never blocks the user
+      const name = fullName.trim()
+      const time = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })
+      callEdgeFunction('send-email', {
+        to: 'jason@listingignite.com',
+        subject: `🆕 New ListingIgnite Signup — ${name}`,
+        html: signupEmailHtml({ name, email, method: 'Email/Password', time }),
+      }).catch(() => {})
     }
   }
 
@@ -243,6 +255,20 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+function signupEmailHtml({ name, email, method, time }: { name: string; email: string; method: string; time: string }) {
+  return `
+    <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:8px;">
+      <h2 style="color:#111827;margin:0 0 20px;font-size:20px;">🆕 New Signup</h2>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:8px 0;color:#6b7280;width:100px;vertical-align:top;">Name</td><td style="padding:8px 0;color:#111827;font-weight:600;">${name}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Email</td><td style="padding:8px 0;color:#111827;">${email}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Method</td><td style="padding:8px 0;color:#111827;">${method}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top;">Time</td><td style="padding:8px 0;color:#111827;">${time}</td></tr>
+      </table>
+    </div>
+  `
 }
 
 function GoogleIcon() {
