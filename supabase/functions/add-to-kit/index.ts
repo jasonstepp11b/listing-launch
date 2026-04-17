@@ -100,14 +100,16 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-    const time = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })
+    console.log('[add-to-kit] Sending notification — SUPABASE_URL present:', !!supabaseUrl, '| SUPABASE_ANON_KEY present:', !!anonKey)
+
     const displayName = firstName || 'N/A'
-    await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+    const time = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })
+
+    const notifyRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${anonKey}`,
-        'apikey': anonKey ?? '',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
       },
       body: JSON.stringify({
         to: 'jason@listingignite.com',
@@ -125,8 +127,10 @@ Deno.serve(async (req: Request) => {
         `,
       }),
     })
+
+    console.log('[add-to-kit] Notification email response — status:', notifyRes.status)
   } catch (err) {
-    console.warn('[add-to-kit] Notification email failed (non-blocking):', err)
+    console.error('[add-to-kit] Notification email failed (non-blocking):', err)
   }
 
   return new Response(
