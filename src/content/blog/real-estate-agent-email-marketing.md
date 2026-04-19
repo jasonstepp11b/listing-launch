@@ -18,6 +18,8 @@ Email is direct. It lands in the inbox of someone who already knows you, already
 
 This guide covers everything a real estate agent needs to build, run, and improve an email marketing strategy that actually gets results: how to build your list, which types of emails to send, best practices that improve open rates, and how to automate the process so it runs without constant effort.
 
+For tips on using social media alongside your email strategy, read: [Real Estate Social Media Marketing: The Best Strategies and Tips for Realtors.](https://listingignite.com/blog/real-estate-marketing-on-social-media)
+
 ---
 
 ## Why Email Marketing for Real Estate Agents Actually Works

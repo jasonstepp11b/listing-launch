@@ -138,6 +138,8 @@ YouTube is the second largest search engine in the world - and one of the most u
 
 On social media, short-form video formats perform best. Clip your walkthrough into a 60-second reel for Instagram. Post a quick market update to Facebook. Tailor your content to each platform and each target audience - what works on YouTube won't always work on Instagram, and vice versa.
 
+For a complete social media strategy built around your video content, read: [Real Estate Social Media Marketing: The Best Strategies and Tips for Realtors.](https://listingignite.com/blog/real-estate-marketing-on-social-media)
+
 ---
 
 ### Email and Your Sphere of Influence

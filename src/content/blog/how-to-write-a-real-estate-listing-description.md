@@ -272,6 +272,8 @@ For a complete guide to real estate video marketing, read: [Real Estate Video Ma
 
 If you want to learn how top Agents are using email, check out [Real Estate Email Marketing: The Complete Guide for Agents.](https://listingignite.com/blog/real-estate-agent-email-marketing)
 
+For tips on promoting your listing across social media, read: [Real Estate Social Media Marketing: The Best Strategies and Tips for Realtors.](https://listingignite.com/blog/real-estate-marketing-on-social-media)
+
 Your next listing is waiting. [Get your full marketing kit at ListingIgnite.](https://listingignite.com)
 
 ---

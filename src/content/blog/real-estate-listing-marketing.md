@@ -98,6 +98,9 @@ Every property deserves its own social media push. Post across your active platf
 
 Paid promotion on social is worth considering for the right property. Even a small budget behind a well-targeted post can put your home listings in front of buyers who aren't actively searching but would be interested.
 
+For a complete guide to real estate marketing on social media, read: [Real Estate Social Media Marketing: The Best Strategies and Tips for Realtors.](https://listingignite.com/blog/real-estate-marketing-on-social-media)
+
+
 ---
 
 ## Listing Marketing Ideas for Sellers Who Want Results
