@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { callEdgeFunction } from '../lib/edgeFunction'
+import Logo from '../components/Logo'
 
 type Mode = 'login' | 'signup' | 'confirmed'
 
@@ -115,7 +116,7 @@ export default function Login() {
     return (
       <div style={s.page}>
         <div style={s.card}>
-          <div style={s.logoMark}>✦</div>
+          <div style={s.logoMark}><Logo size="lg" /></div>
           <div style={s.confirmedIcon}>✉️</div>
           <h1 style={s.heading}>Check your email</h1>
           <p style={s.subheading}>
@@ -138,8 +139,7 @@ export default function Login() {
   return (
     <div style={s.page}>
       <div style={s.card}>
-        <div style={s.logoMark}>✦</div>
-        <h1 style={s.heading}>ListingIgnite</h1>
+        <div style={s.logoMark}><Logo size="lg" /></div>
         <p style={s.subheading}>
           {isSignup
             ? 'Create your free account and get 3 free listings — no credit card required.'
@@ -303,9 +303,9 @@ const s: Record<string, React.CSSProperties> = {
     boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
   },
   logoMark: {
-    fontSize: '28px',
-    color: '#a855f7',
-    marginBottom: '16px',
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '24px',
   },
   confirmedIcon: {
     fontSize: '40px',

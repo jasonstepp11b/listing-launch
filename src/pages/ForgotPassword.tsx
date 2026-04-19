@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import Logo from '../components/Logo'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -28,7 +29,7 @@ export default function ForgotPassword() {
   return (
     <div style={s.page}>
       <div style={s.card}>
-        <div style={s.logoMark}>✦</div>
+        <div style={s.logoMark}><Logo size="lg" /></div>
 
         {sent ? (
           <>
@@ -100,9 +101,9 @@ const s: Record<string, React.CSSProperties> = {
     boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
   },
   logoMark: {
-    fontSize: '28px',
-    color: '#a855f7',
-    marginBottom: '16px',
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '24px',
   },
   sentIcon: {
     fontSize: '40px',
