@@ -6,7 +6,7 @@ description: "Learn how to use real estate social media marketing to build your 
 featuredImage: "/blog/images/real-estate-marketing-on-social-media.jpg"
 category: "Marketing"
 author: "Jason Stepp"
-tags: ["real estate social media marketing", "real estate marketing on social media", "social media marketing", "instagram", "real estate marketing"]
+tags: ["real estate marketing", "mls", "listing marketing", "real estate social media marketing", "real estate marketing on social media", "social media marketing", "instagram", "real estate marketing"]
 published: true
 ---
 
