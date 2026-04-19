@@ -659,9 +659,9 @@ Cookie consent banner must be implemented before any pixels are activated.
 - [x] Blog post featured image — fixed mobile overflow ✅
 - [x] MVP demo video recorded (Loom + DaVinci Resolve) ✅
 - [x] Dedicated video production Claude conversation set up ✅
-- [ ] GA4 dashboard_visit — mark as key event once it appears in Recent Events (may take 24hrs)
-- [ ] Link Google Search Console to GA4 (Admin → Property Settings → Search Console Links)
-- [ ] Filter internal traffic in GA4 (add home IP address)
+- [x] GA4 dashboard_visit — mark as key event once it appears in Recent Events (may take 24hrs)
+- [x] Link Google Search Console to GA4 (Admin → Property Settings → Search Console Links)
+- [x] Filter internal traffic in GA4 (add home IP address)
 - [ ] Admin panel (switch to Claude Opus 4.7 in Claude Code first)
 - [ ] Stripe billing (switch to Claude Opus 4.7 in Claude Code first)
 - [ ] Cookie consent banner (before ad pixels go live)
