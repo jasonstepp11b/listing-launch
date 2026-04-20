@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /checklist/thank-you
+Disallow: /downloads/
 
 Sitemap: https://listingignite.com/sitemap.xml

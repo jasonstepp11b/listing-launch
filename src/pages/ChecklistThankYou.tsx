@@ -5,6 +5,11 @@ import Logo from '../components/Logo'
 export default function ChecklistThankYou() {
   useEffect(() => {
     document.title = 'Your Checklist Is Ready — ListingIgnite'
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex, nofollow'
+    document.head.appendChild(meta)
+    return () => { document.head.removeChild(meta) }
   }, [])
 
   return (
