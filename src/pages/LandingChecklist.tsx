@@ -68,11 +68,11 @@ export default function LandingChecklist() {
             <div>
               <p style={s.eyebrow}>FREE CHECKLIST · FOR REAL ESTATE AGENTS</p>
               <h1 style={s.h1} className="checklist-h1">
-                47 things to market every listing.<br />
-                <span style={s.gradientText}>Eleven of them, automated.</span>
+                The Listing Marketing Checklist.<br />
+                <span style={s.gradientText}>47 items, built for agents who move fast.</span>
               </h1>
               <p style={s.heroSub}>
-                The print-and-check-off list every serious agent needs. Plus the six-page breakdown of exactly which steps you can stop doing by hand.
+                Every piece of copy, creative, and content a listing needs — organized into a print-ready PDF. Yours free.
               </p>
 
               <form onSubmit={handleSubmit} noValidate style={s.form}>
@@ -98,7 +98,7 @@ export default function LandingChecklist() {
               {error && <p style={s.errorMsg}>{error}</p>}
 
               <p style={s.microcopy}>Free. No spam. Unsubscribe anytime.</p>
-              <p style={s.proofStrip}>47 items · Print-ready PDF · Built for agents who move fast</p>
+              <p style={s.proofStrip}>47 items · Print-ready PDF · Free forever</p>
             </div>
 
             {/* Right column — CSS PDF cover mockup (desktop only) */}
