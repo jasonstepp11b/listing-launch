@@ -138,6 +138,36 @@ div.landing-nav-mobile { flex-direction: column; }
   .landing-nav-mobile  { display: flex !important; }
 }
 
+/* ── Checklist squeeze page ───────────────────────────────────────────────── */
+.checklist-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 80px;
+  align-items: center;
+}
+.checklist-pdf-visual { display: block; }
+.checklist-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.checklist-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@media (max-width: 860px) {
+  .checklist-hero-grid { grid-template-columns: 1fr; gap: 48px; }
+  .checklist-pdf-visual { display: none; }
+  .checklist-cards-grid { grid-template-columns: 1fr; }
+  .checklist-footer-row { flex-direction: column; gap: 16px; align-items: flex-start; }
+}
+@media (max-width: 560px) {
+  .checklist-h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+  .checklist-h2 { font-size: 26px !important; }
+  .checklist-cta-card { padding: 32px 24px !important; }
+}
+
 /* Responsive grids for Landing page */
 
 @media (max-width: 860px) {

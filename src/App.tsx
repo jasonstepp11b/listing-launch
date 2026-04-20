@@ -17,6 +17,8 @@ import BlogPost from './pages/BlogPost'
 import BlogCategory from './pages/BlogCategory'
 import BlogTag from './pages/BlogTag'
 import Pricing from './pages/Pricing'
+import LandingChecklist from './pages/LandingChecklist'
+import ChecklistThankYou from './pages/ChecklistThankYou'
 
 // Authenticated users go straight to /dashboard; everyone else sees the landing page.
 function RootRoute() {
@@ -74,6 +76,8 @@ export default function App() {
           <Route path="/blog/category/:category" element={<BlogCategory />} />
           <Route path="/blog/tag/:tag" element={<BlogTag />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/checklist" element={<LandingChecklist />} />
+          <Route path="/checklist/thank-you" element={<ChecklistThankYou />} />
           {import.meta.env.DEV && <Route path="/style-guide" element={<StyleGuide />} />}
         </Routes>
       </AuthProvider>
