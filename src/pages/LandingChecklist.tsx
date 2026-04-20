@@ -170,7 +170,7 @@ export default function LandingChecklist() {
             Agents spend 1–3 hours per listing writing marketing content. MLS description. Social posts. Email blast. Flyer. Video script. Landing page. Every single listing. That's thousands of hours a year for a busy agent.
           </p>
           <p style={s.founderPara}>
-            I built ListingIgnite to take that work down to thirty seconds. This checklist shows you everything a listing actually needs — so you can see for yourself where the time goes, and where it doesn't have to.
+            I built ListingIgnite to take that work down to a fraction of the time. This checklist shows you everything a listing actually needs — so you can see for yourself where the time goes, and where it doesn't have to.
           </p>
           <p style={s.signature}>— Jason Stepp, Founder</p>
         </div>
